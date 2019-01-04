@@ -28,10 +28,10 @@ int main()
 	double supvel = 1.0;
 	double latconst = 2.5e-10;
 
-	double adhesiontip = 1.3e-20;
-	double stiffness = 0.2;
-	double coupling = 1.0;
-	double adhesionsub = 8.0e18;
+	double adhesiontip = 1.3e-21;		// 1.3e-20
+	double stiffness = 0.02;				// 0.2
+	double coupling = 0.1;
+	double adhesionsub = 8.0e17;
 	
 	double xmass = 1e-23;
 	double xveldamp = 3e12;
@@ -52,7 +52,6 @@ int main()
 			   coupling,adhesionsub,timestep,timesteps,xmass,
 			   qmass,qposdamp,xveldamp,qveldamp,xfile,qfile,tomfile,tfile);
 
-	afm.settime(100.5*latconst);
 	for ( uint k = 0; k < timesteps; k++ )
 	{
 		afm.rk4();
