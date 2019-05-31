@@ -3,7 +3,6 @@
 // single run modified tomlinson model
 //
 
-
 // includes
 
 #include <iostream>
@@ -23,50 +22,72 @@ typedef unsigned int uint;
 int main()
 {
 	//input values
+	double barref = 4.0e-20;
+	double kapparef = 0.0612245;
 	
-	double spring = 1.0;
+	double spring = 2.0;
 	double supvel = 1.0;
-	double latconst = 2.5e-10;
-
-	double adhesiontip = 1.3e-21;		// 1.3e-20
-	double stiffness = 0.02;				// 0.2
-	double coupling = 0.1;
-	double adhesionsub = 8.0e17;
+	double latcon = 2.5e-10;
+	double barr1 = barref;
+	double barr2 = 0.5 * barref;
+	double kappa1 = kapparef;
+	double kappa2 = 0.5 * kapparef;
+	double align = 1.0+0.05;
+	double nu2 = 0.382653;
+	double nu4 = 5.809e17;
 	
 	double xmass = 1e-23;
-	double xveldamp = 3e12;
+	double xdamp = 1.875e13;
 
-	double qmass = 5e-22;
-	double qposdamp = 0e21;
-	double qveldamp = 3e12;
+	double qmass = 3.67143e-24;
+	double qdamp = 4.28571e13;
+	
+	//double temp = 300;
+	double temp = 25e61;
+	//temp = 0;
 
-	double timestep = 1.0e-13;
-	uint timesteps = 5.0e4;
+	double tstep = 5e-14;	
+	uint tsteps = 2.25e5;	// has to be even beucasue lazyness
+
+	//double ttoa = latcon/tstep;	// timesteps to minima
 
 	string tfile = "time.csv";
 	string xfile = "xout.csv";
 	string qfile = "qout.csv";
 	string tomfile = "tomout.csv";
 	
-	tomlin afm(spring,supvel,latconst,adhesiontip,stiffness,
-			   coupling,adhesionsub,timestep,timesteps,xmass,
-			   qmass,qposdamp,xveldamp,qveldamp,xfile,qfile,tomfile,tfile);
+	tomlin afm(spring,supvel,latcon,align,barr1,barr2,kappa1,kappa2,
+			   nu2,nu4,temp,tstep,tsteps,xmass,qmass,xdamp,qdamp,
+			   tfile,xfile,qfile,tomfile);
 
-	for ( uint k = 0; k < timesteps; k++ )
+	for ( uint k = 0; k < tsteps; k++ )
 	{
-		afm.rk4();
-		afm.kinetic();
-		afm.potential();
-		afm.friction();
+		//if (k == tsteps / 2)
+		//	afm.treverse();
+		//	cout << "reversing at tstep / t = " << k << " / " << k*tstep << endl;
+		//if (k == 15.0*ttoa)
+		//{
+		//	cout << "pausing at tstep / t = " << k << " / " << k*tstep << endl;
+		//	afm.tpause();
+		//}
+		//else if (k == 0.90*tsteps)
+		//{
+		//	afm.tpause();
+		//	cout << "resuming at tstep / t = " << k << " / " << k*tstep << endl;
+		//}
 
-		afm.storevals();
+		afm.rk4();
+		//afm.langevin();
+		afm.calckin();
+		afm.calcpot();
+		afm.calcfric();
+
+		afm.pushvals();
 		afm.inctime();
 	}
-
-	cout << "final x: " << afm.getposx() << endl << "final q: " << afm.getposq() << endl 
-		 << "final fric: " << afm.getfrc() << endl;
-
-	afm.printvals();
+	
+	//afm.printall();
+	afm.writedata();
 }
 
 
