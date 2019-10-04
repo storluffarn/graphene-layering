@@ -12,7 +12,7 @@
 #include <vector>
 #include <random>
 #include <numeric> 
-#include <algorithm>
+//#include <algorithm>
 
 // Lazy stuff
 
@@ -37,11 +37,11 @@ class tomlin
 		double vel = 0;
 		double acc = 0;
 		double kin = 0;
-		
+
 		// parameters
 		const double mass;
 		const double damp;
-		
+
 		// derived constants
 		const double rmass = 1.0/mass;
 
@@ -58,9 +58,9 @@ class tomlin
 		xobj (double mass, double damp, uint tsteps)
 			: mass(mass), damp(damp)
 		{
-			  poss.reserve(tsteps);
-			  vels.reserve(tsteps);
-			  accs.reserve(tsteps);
+			poss.reserve(tsteps);
+			vels.reserve(tsteps);
+			accs.reserve(tsteps);
 		}
 	};
 
@@ -71,33 +71,34 @@ class tomlin
 		double vel = 0;
 		double acc = 0;
 		double kin = 0;
-		
+
 		// parameters
 		const double mass;
 		const double damp;
-		
+
 		// derived constants
 		const double rmass = 1.0/mass;
-		
+
 		// containers
 		vector <double> poss;
 		vector <double> vels;
 		vector <double> accs;
-		
+		vector <double> slips;
+
 		// functions
 		void calckin(){kin = 0.5*mass*pow(vel,2);}
 
 		friend tomlin;
-		
+
 		qobj (double mass, double damp, uint tsteps)
 			: mass(mass), damp(damp)
 		{
-			  poss.reserve(tsteps);
-			  vels.reserve(tsteps);
-			  accs.reserve(tsteps);
+			poss.reserve(tsteps);
+			vels.reserve(tsteps);
+			accs.reserve(tsteps);
 		}
 	};
-	
+
 	// model parameters
 	const double spring;
 	const double supvel;
@@ -109,7 +110,7 @@ class tomlin
 	const double kappa2;
 	const double nu2;
 	const double nu4;
-	
+
 	// dyanamic varaibles
 	double kin = 0;
 	double pot = 0;
@@ -117,7 +118,7 @@ class tomlin
 	double time = 0;
 	double suppos = 0;
 	double temp;
-	
+
 	// non physical parameters
 	const double tstep;
 	const uint tsteps;
@@ -139,6 +140,8 @@ class tomlin
 	vector <double> frics;
 	vector <double> times;
 	vector <double> poss;	
+	vector <double> lessnoiset;
+	vector <double> lessnoisef;
 
 	// functions
 	void xacc();
@@ -150,7 +153,8 @@ class tomlin
 	const string xfile;
 	const string qfile;
 	const string tomfile;
-		
+	const string avgfile;
+
 	// need for speed
 	const double oneosix = 1.0/6.0;
 
@@ -162,7 +166,9 @@ class tomlin
 	void calcpot();
 	void calcfric();
 	void inctime();
-	
+
+	void noisered(uint,uint);
+
 	// in line functions
 	void calckin(){x.calckin(); q.calckin(); kin = x.kin + q.kin;}
 	void treverse(){reverse = !reverse;}
@@ -176,18 +182,22 @@ class tomlin
 	void settime(double c){time = c;}
 	void setsuppos(double c){suppos = c;}
 
-	double getposx(){return x.pos;}
+	double getposx(uint t){return x.poss[t];}
 	double getvelx(){return x.vel;}
 	double getaccx(){return x.acc;}
 	double getposq(){return q.pos;}
 	double getvelq(){return q.vel;}
 	double getaccq(){return q.acc;}
+	uint getposxsize(){return x.poss.size();}
 
-	double gettime(){return time;}	
+	double gettime(double t){return times[t];}	
 	double getkin(){return kin;}
 	double getpot(){return pot;}
-	double getfric(){return fric;}
+	double getfric(double t){return frics[t];}
 	double getsuppos(){return suppos;} 
+
+	vector <double>* getposs() {return &x.poss;}
+	vector <double>* getfrics() {return &frics;}
 
 	// io stuff
 	void pushvals();
@@ -201,14 +211,15 @@ class tomlin
 
 	// constructor
 	tomlin(double spring, double supvel, double latcon, double align, double barr1, 
-		   double barr2, double kappa1, double kappa2, double nu2, double nu4, double temp, 
-		   double tstep, uint tsteps, double xmass, double qmass, double xdamp, 
-		   double qdamp, string tfile, string xfile, string qfile, string tomfile)
+		   double barr2, double kappa1, double kappa2, double nu2, double nu4, 
+		   double temp, double tstep, uint tsteps, double xmass, double qmass, 
+		   double xdamp, double qdamp, string tfile, string xfile, string qfile, 
+		   string tomfile, string avgfile)
 		 : spring(spring), supvel(supvel), latcon(latcon), align(align), barr1(barr1),
 	       barr2(barr2), kappa1(kappa1), kappa2(kappa2), nu2(nu2), nu4(nu4), temp(temp),
 		   tstep(tstep), tsteps(tsteps), x(xmass,xdamp,tsteps), 
 		   q(qmass,qdamp,tsteps), tfile(tfile), xfile(xfile), 
-		   qfile(qfile), tomfile(tomfile) 
+		   qfile(qfile), tomfile(tomfile), avgfile(avgfile) 
 		{
 		   kins.reserve(tsteps);
 		   pots.reserve(tsteps);
@@ -295,7 +306,7 @@ void tomlin::inctime()
 
 void tomlin::writedata()
 {
-	ofstream xstream, qstream, tomstream, tstream;
+	ofstream xstream, qstream, tomstream, tstream, avgstream;
 
 	xstream.open(xfile);
 		xstream << "position, velocity, acceleration" << endl;
@@ -320,6 +331,12 @@ void tomlin::writedata()
 		for (uint k = 0; k < tsteps; k++)
 			tstream << times[k] << "," << poss[k] << endl;
 	tstream.close();
+
+	avgstream.open(avgfile);
+		avgstream << "time, avg:ed friction " << endl;
+		uint size = lessnoisef.size();
+		for (uint k = 0; k < size; k++)
+			avgstream << lessnoiset[k] << "," << lessnoisef[k] << endl;
 }
 
 void tomlin::printins()
@@ -482,6 +499,62 @@ pair <double, double> tomlin::langevin()
 
 	return out;
 }
+
+void tomlin::noisered(uint halfmeansize, uint skip)
+{
+	// building mean for first point
+
+	double sum = 0;
+	double avg = 0;
+
+	uint bgnel = 0;
+	uint midel = 0;
+	uint endel = 0;
+
+	const uint its = floor((double) halfmeansize/skip);
+	const double rmeansize = 1.0/(floor(((double) 2*halfmeansize)/skip)+1);
+	
+	lessnoiset.reserve(ceil(tsteps/skip));
+	lessnoisef.reserve(ceil(tsteps/skip));
+
+	for (uint l = 0; l < its; l++)		
+	{
+		sum += frics[endel];
+		endel += skip;
+	}
+	
+	midel = endel;
+	sum += frics[endel];
+	endel += skip;
+	
+	for (uint l = 0; l < its; l++)
+	{
+		sum += frics[endel];
+		endel += skip;
+	}
+		
+	avg = rmeansize * sum;
+
+	lessnoiset.push_back(times[midel]);
+	lessnoisef.push_back(avg);
+
+	// calculating rest of means
+
+	while (endel < tsteps)
+	{
+		avg -= rmeansize*frics[bgnel];
+		bgnel += skip;
+		
+		midel += skip;
+		
+		avg += rmeansize*frics[endel];
+		endel += skip;
+		
+		lessnoiset.push_back(times[midel]);
+		lessnoisef.push_back(avg);
+	}
+}
+
 
 // ---------- DEBUGGING STARTS HERE --------------
 
