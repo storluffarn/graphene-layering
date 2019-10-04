@@ -6,30 +6,12 @@
 
 // includes
 
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <cmath>
-#include <algorithm>
-#include <vector>
-#include <string>
-#include <map>
-#include "modtomlin.h"
+#include "slicingalgs.h"		// I fucked up my dependancies, modtomlin.h is needed but is included in slicingalgs.h...
+#include <chrono>
 
 // lazy stuff
 
 using namespace std;
-
-typedef unsigned int uint;
-
-// some very manual debugging...
-
-int pingcount = 0; 
-void ping(const int line) {cout << "ping at line " << line << endl; pingcount++;}
-void getpingcount() {cout << pingcount << endl;}
-
-// threshold for float zero
-static const double zero = 1e-11;
 
 int main()
 {
@@ -55,94 +37,90 @@ int main()
 	double qmass = 3.67143e-24;
 	double qdamp = 4.28571e13;
 	
-	double temp = 200;  // 5e48 lest we'd forget
+	double temp = 1.0*200;  // 5e48 lest we'd forget
 	
 	double tmp = 0.5;	// 0.5 gives reliable timestep dep. 1.0 should be ok
 	double tstep = tmp * 3e-14;	
 	uint tsteps = 1.0/tmp * 2.0e5;	// has to be even beucasue lazyness
 
-	//double ttoa = latcon/tstep;	// timesteps to minima
+	//double ttoa = latcon/(tstep*supvel);	// timesteps to minima
+
+	time_t t = time(0);
+	struct tm * now  = localtime(&t);
+	char buffer [80];
+	strftime (buffer,80,"%Y%m%d%H%M%S",now);
 
 	string tfile = "time.csv";
 	string xfile = "xout.csv";
 	string qfile = "qout.csv";
 	string ffile = "tomout.csv";
-	
-	struct point
-	{
-		double x;
-		double y;
-	};	
+	string avgfile = "avgs.csv";
 
-	uint periods = static_cast <uint> (tstep*tsteps*supvel/latcon);
+	//string tfile = "time" + buffer + ".csv";
+	//string xfile = "xout" + buffer + ".csv";
+	//string qfile = "qout" + buffer + ".csv";
+	//string ffile = "tomout" + buffer + ".csv";
+
+	//uint periods = static_cast <uint> (tstep*tsteps*supvel/latcon);
 	
 	tomlin afm(spring,supvel,latcon,align,barr1,barr2,kappa1,kappa2,
 			   nu2,nu4,temp,tstep,tsteps,xmass,qmass,xdamp,qdamp,
-			   tfile,xfile,qfile,ffile);
+			   tfile,xfile,qfile,ffile,avgfile);
 
 	ofstream fspos;
-	fspos.open("slippos.csv");
+	fspos.open("slips.csv");
 
+	// for simple slip
+	//uint adj = 10;
+	//uint end = tsteps;
+	//uint stride = static_cast <uint> (ttoa / 2.25);
+	//int avgsize = 2;		// offset to avg with 1 means three points avg
+	
+	// for averaging
+	uint skip = 50;			// probably should be a fraction of mean	
+	uint halfmeansize = 1000;			// half interval, such that | mean -- mid -- mean |
+	uint end = tsteps;
+	
 	uint runs = 1;
 
-	for ( uint l = 0; l < runs; l++)	
+	for ( uint l = 0; l < runs; l++)
 	{	
-		vector <point> toppts;
-		vector <point> botpts;
-		
-		toppts.reserve(2*periods); 
-		botpts.reserve(2*periods);
+		vector <uint> slips;
 
-		bool climb = true;
+		//chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 
-		double lastpos = 0;
-		double lastfric = 0;
-		double lasttime = 0;
-		
 		for ( uint k = 0; k < tsteps; k++ )
 		{
 			//cout << "now begnning loop: " << k << endl;
 
 			afm.rk4();
 			afm.calcfric();
-
-			double pos = afm.getposx();
-			double fric = afm.getfric();
-			double time = afm.gettime();
 					
-			double diff = fric - lastfric;
-
-			if (!climb && diff > zero)				// did we stick?
-			{
-				ping(__LINE__);
-				point pt {lastpos,lastfric};
-				botpts.push_back(pt);
-
-				climb = true;
-			}
+			// multiple algorithms available, see separate .h file
 			
-			if (climb && diff < zero)				// did we slip?
-			{
-				ping(__LINE__);
-				point pt {lastpos,lastfric};
-				toppts.push_back(pt);
-				
-				climb = false;
-			}
-
-			afm.inctime();
-			lastpos = pos;
-			lastfric = fric;
-			lasttime = time;
-
 			afm.pushvals();			// remove production runs, just debugging!
+			afm.inctime();
 		}
+		
+		//chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+
+		//double looptime = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
 	
-		for (auto &el : toppts)
-		{
-			fspos << el.x << ",";
-		}
-		fspos << endl;
+		afm.noisered(halfmeansize,skip);	
+		afm.writedata();		// ONLY FOR DIAGNOSTICS REMOVE LATER
+		
+		//t1 = std::chrono::high_resolution_clock::now();
+		//halfintervals(adj, end, stride, avgsize, &afm, &avgpts);
+
+		//for (auto &el : slips)
+		//{
+		//	fspos << afm.gettime(el) << "," << afm.getfric(el) << endl;;
+		//}
+		//t2 = std::chrono::high_resolution_clock::now();
+		
+		//double slicetime = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
+
+		//cout << "loop time: " << looptime << endl << "slicetime " << slicetime << endl;
 		
 		if ((l+1) % 1 == 0)
 		{
@@ -152,7 +130,6 @@ int main()
 
 	fspos.close();
 
-	afm.writedata();
 }
 
 

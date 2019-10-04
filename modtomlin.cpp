@@ -42,7 +42,7 @@ int main()
 	double qmass = 3.67143e-24;
 	double qdamp = 4.28571e13;
 	
-	double temp = 300;  //5e48
+	double temp = 600;  //5e48
 	
 	double tmp = 0.5;	// 0.5 gives reliable time step dep. 1.0 should be ok
 	double tstep = tmp * 3e-14;	
