@@ -195,9 +195,14 @@ class tomlin
 	double getpot(){return pot;}
 	double getfric(double t){return frics[t];}
 	double getsuppos(){return suppos;} 
+	double getrnfric(double t) {return lessnoisef[t];}
+	double getrntime(double t) {return lessnoiset[t];}
 
 	vector <double>* getposs() {return &x.poss;}
 	vector <double>* getfrics() {return &frics;}
+	vector <double>* gettimes() {return &times;}
+	vector <double>* getrnfrics() {return &lessnoisef;}
+	vector <double>* getrntimes() {return &lessnoiset;}
 
 	// io stuff
 	void pushvals();

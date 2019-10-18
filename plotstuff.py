@@ -187,7 +187,7 @@ zi = pot(xlist,qlist)
 toev = 6.242e+18
 
 im = ax.pcolormesh(xscale*xlist,qscale*qlist,toev*zi.reshape(xlist.shape),cmap='YlOrBr',rasterized=True)
-ax.plot(xdata,qdata)
+ax.plot(xdata,qdata,'bo',markersize=0.1)
 ax.set(xlabel='x (nm)', ylabel='q (nm)')
 
 cbar = fig3.colorbar(im)
@@ -334,7 +334,7 @@ zi = pot(xlist,qlist)
 toev = 6.242e+18
 
 im = ax.pcolormesh(xscale*xlist,qscale*qlist,toev*zi.reshape(xlist.shape),cmap='YlOrBr',rasterized=True)
-ax.plot(icxdata,icqdata)
+ax.plot(icxdata,icqdata,'bo',markersize=0.1)
 ax.set(xlabel='x (nm)', ylabel='q (nm)')
 
 cbar = fig6b.colorbar(im)
