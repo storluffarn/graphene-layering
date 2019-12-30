@@ -1,5 +1,4 @@
 
-#include "common_stuff.h"
 #include "modtomlin.h"
 
 using namespace std;
@@ -9,7 +8,7 @@ typedef unsigned int uint;
 static const double zero = 1e-11;
 
 // finding slipping points by inverval halfing
-void halfintervals (uint adj, uint end, uint stride, vector <double>* xvals, vector <double>* yvals,  vector <uint>* slips)
+void halfintervals (uint mode, uint adj, uint end, uint stride, vector <double>* xvals, vector <double>* yvals,  vector <uint>* slips)
 {
 
 	// part I find slipping region
@@ -19,37 +18,77 @@ void halfintervals (uint adj, uint end, uint stride, vector <double>* xvals, vec
 	uint curr = 0;
 	uint next = stride;
 	bool climbing;
-	
-	while (next < end)
-	{
-		//uint next = start + round(adj+exp(logstep*loops));
 
-		double x1 = xvals->at(curr);
-		double x2 = xvals->at(next);
+    // finding maxima in noisy stick-slip signal
+    if (mode == 1)
+    {
+	    while (next < end)
+	    {
+	    	//uint next = start + round(adj+exp(logstep*loops));
 
-		double y1 = yvals->at(curr);
-		double y2 = yvals->at(next);
+	    	double x1 = xvals->at(curr);
+	    	double x2 = xvals->at(next);
 
-		double slope = (y2 - y1) / (x2 - x1);
+	    	double y1 = yvals->at(curr);
+	    	double y2 = yvals->at(next);
 
-		if (slope > 0.0)
-			climbing = true;
+	    	double slope = (y2 - y1) / (x2 - x1);
 
-		if (slope < 0.0 && climbing)
-		{
-			climbing = false;
-			slipsish.push_back(curr);
-		}
-		curr = next;
-		next = curr + stride;
-	}
+	    	if (slope > 0.0)
+	    		climbing = true;
+
+	    	if (slope < 0.0 && climbing)
+	    	{
+	    		climbing = false;
+	    		slipsish.push_back(curr);
+	    	}
+	    	curr = next;
+	    	next = curr + stride;
+	    }
+    }
+    else if (mode == 2)
+    {
+        vector<double>::iterator maxel;
+        maxel = max_element(yvals->begin(), yvals->end());
+        
+        double max = *maxel;
+        double low = 0.95*max;
+        double bound = max - low;
+
+        cout << max << " " << bound <<  endl;
+
+	    while (next < end)
+	    {
+	    	//uint next = start + round(adj+exp(logstep*loops));
+
+	    	//double x1 = xvals->at(curr);
+	    	//double x2 = xvals->at(next);
+
+	    	double y1 = yvals->at(curr);
+	    	double y2 = yvals->at(next);
+
+	    	double diff = y1 - y2;
+
+	    	if (diff > bound)
+	    	{
+	    		slipsish.push_back(curr);
+	    	}
+
+	    	curr = next;
+	    	next = curr + stride;
+	    }
+    }
+    else
+    {
+        cout << "no slicing operation mode selected, exiting" << endl;
+    }
 	
 	//cout << "slipsish has size: " << slipsish.size() << endl;
 
 	//for (auto &el : slipsish)
 	//	cout << el << endl;
 	//cout << endl;
-
+	
 	// part II find slipping point
 
 	slips->reserve(round(end/( (double) stride )));

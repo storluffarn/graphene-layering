@@ -6,12 +6,13 @@
 
 // includes
 
-#include <iostream>
 #include <fstream>
-#include <cmath>
-#include <vector>
 #include <random>
 #include <numeric> 
+#include <cmath>
+#include <iostream>
+#include <algorithm> 
+#include "common_stuff.h"
 //#include <algorithm>
 
 // Lazy stuff
@@ -22,8 +23,8 @@ typedef unsigned int uint;
 
 // constants
 
-static const double pi = atan(1.0)*4;
-static const double kB = 1.38064852e-23;
+//static const double pi = atan(1.0)*4;
+//static const double kB = 1.38064852e-23;
 
 // objects
 
@@ -122,13 +123,15 @@ class tomlin
 	// non physical parameters
 	const double tstep;
 	const uint tsteps;
-	int one = 1;
 	bool reverse = false;
 	bool pause = false;
 
 	// derived constants
-	const double rlatcon = 1.0/latcon;
-	const double rlatcon2pi = 2*pi*rlatcon;
+	const double latcona = latcon;
+	const double latconb = latcona/align;
+	const double rlatcona = 1.0/latcon;
+	const double rlatcona2pi = 2*pi*rlatcona;
+	const double rlatconb2pi = 2*pi*latcon/align;
 
 	// objects
 	xobj x;
@@ -142,11 +145,15 @@ class tomlin
 	vector <double> poss;	
 	vector <double> lessnoiset;
 	vector <double> lessnoisef;
+	vector <double> lessnoisesuppos;
 
 	// functions
 	void xacc();
 	void qacc();
+	void testxacc();
+	void testqacc();
 	pair<double,double> langevin();
+	pair<double,double> testlangevin();
 
 	// files
 	const string tfile;
@@ -154,6 +161,7 @@ class tomlin
 	const string qfile;
 	const string tomfile;
 	const string avgfile;
+	const string pfile;
 
 	// need for speed
 	const double oneosix = 1.0/6.0;
@@ -197,12 +205,14 @@ class tomlin
 	double getsuppos(){return suppos;} 
 	double getrnfric(double t) {return lessnoisef[t];}
 	double getrntime(double t) {return lessnoiset[t];}
+	double getrnsuppos(double t) {return lessnoisesuppos[t];}
 
 	vector <double>* getposs() {return &x.poss;}
 	vector <double>* getfrics() {return &frics;}
 	vector <double>* gettimes() {return &times;}
 	vector <double>* getrnfrics() {return &lessnoisef;}
 	vector <double>* getrntimes() {return &lessnoiset;}
+	vector <double>* getrnsupposs() {return &lessnoisesuppos;}
 
 	// io stuff
 	void pushvals();
@@ -219,12 +229,12 @@ class tomlin
 		   double barr2, double kappa1, double kappa2, double nu2, double nu4, 
 		   double temp, double tstep, uint tsteps, double xmass, double qmass, 
 		   double xdamp, double qdamp, string tfile, string xfile, string qfile, 
-		   string tomfile, string avgfile)
+		   string tomfile, string avgfile, string pfile)
 		 : spring(spring), supvel(supvel), latcon(latcon), align(align), barr1(barr1),
 	       barr2(barr2), kappa1(kappa1), kappa2(kappa2), nu2(nu2), nu4(nu4), temp(temp),
 		   tstep(tstep), tsteps(tsteps), x(xmass,xdamp,tsteps), 
 		   q(qmass,qdamp,tsteps), tfile(tfile), xfile(xfile), 
-		   qfile(qfile), tomfile(tomfile), avgfile(avgfile) 
+		   qfile(qfile), tomfile(tomfile), avgfile(avgfile), pfile(pfile)
 		{
 		   kins.reserve(tsteps);
 		   pots.reserve(tsteps);
@@ -239,8 +249,8 @@ class tomlin
 void tomlin::calcpot()
 {
 	pot = 0.5*spring*pow(x.pos-suppos*time,2) + 
-		  (barr1 + kappa1*pow(q.pos,2)) * (1-cos(rlatcon2pi*(x.pos-q.pos))) + 
-		  (barr2 + kappa2*pow(q.pos,2)) * (1-cos(rlatcon2pi*align*x.pos)) + 
+		  (barr1 + kappa1*pow(q.pos,2)) * (1-cos(rlatcona2pi*(x.pos-q.pos))) + 
+		  (barr2 + kappa2*pow(q.pos,2)) * (1-cos(rlatcona2pi*align*x.pos)) + 
 		  nu2*pow(q.pos,2) + nu4*pow(q.pos,4);
 }
 	
@@ -248,27 +258,48 @@ void tomlin::xacc()
 {
 	double force = 
 		spring*(x.pos-suppos) + 
-		rlatcon2pi*(barr1+kappa1*pow(q.pos,2)) * sin(rlatcon2pi*(x.pos-q.pos)) +
-		rlatcon2pi*(barr2+kappa2*pow(q.pos,2)) * sin(rlatcon2pi*align*x.pos);
+		rlatcona2pi*(barr1+kappa1*pow(q.pos,2)) * sin(rlatcona2pi*(x.pos-q.pos)) +
+		rlatcona2pi*(barr2+kappa2*pow(q.pos,2)) * sin(rlatcona2pi*align*x.pos);
 	
-	x.acc = - (x.rmass*force + x.damp*x.vel);
+	//x.acc = - (x.rmass*force + x.damp*x.vel);
+	//x.acc = - (x.rmass*force); // use for T = 0 case, remembeer to change for q too! 
 
 	//x.acc = - x.rmass*spring*(x.pos - suppos);
-	//x.acc = 0;
+	x.acc = 0;
 }
+
+//void tomlin::testxacc()
+//{
+//	double force = 
+//		spring*(x.pos-suppos) + 
+//		2*kappa1*(x.pos-q.pos) * ( 1-cos(rlatcona2pi * q.pos) ) + 
+//		2*kappa2*(x.pos-q.pos) * ( 1-cos(rlatconb2pi * x.pos) ) + 
+//		rlatconb2pi*sin(rlatconb2pi*x.pos) * (barr2 + kappa2*pow(x.pos-q.pos,2)) + 
+//		2*nu2*(x.pos-q.pos) + 4*nu4*pow(x.pos-q.pos,3);
+//}
 
 void tomlin::qacc()
 {
 	double force = 
-		-rlatcon2pi*(barr1 + kappa1*pow(q.pos,2)) * sin(rlatcon2pi*(x.pos-q.pos)) +
-		2.0*kappa1*q.pos * (1.0-cos(rlatcon2pi*(x.pos-q.pos))) + 
-		2.0*kappa2*q.pos * (1.0-cos(rlatcon2pi*align*x.pos)) + 
+		-rlatcona2pi*(barr1 + kappa1*pow(q.pos,2)) * sin(rlatcona2pi*(x.pos-q.pos)) +
+		2.0*kappa1*q.pos * (1.0-cos(rlatcona2pi*(x.pos-q.pos))) + 
+		2.0*kappa2*q.pos * (1.0-cos(rlatcona2pi*align*x.pos)) + 
 		2.0*nu2*q.pos + 4.0*nu4*pow(q.pos,3);
 	
-	q.acc = - (q.rmass*force + q.damp*q.vel);
+	//q.acc = - (q.rmass*force + q.damp*q.vel);
+    //q.acc = - (q.rmass*force);
 
-	//q.acc = 0;
+	q.acc = 0;
 }
+
+//void tomlin::testqacc()
+//{
+//	double force = 
+//		2*kappa1*(x.pos-q.pos) * ( 1-cos(rlatcona2pi * q.pos) ) - 
+//		2*kappa2*(x.pos-q.pos) * ( 1-cos(rlatconb2pi * x.pos) ) +
+//		rlatcona2pi*sin(1-rlatcona2pi*x.pos) * (barr1 + kappa1*(x.pos-q.pos)) -
+//		2*nu2*(x.pos-q.pos) - 4*nu4*pow(x.pos-q.pos,4);
+//}
 
 void tomlin::calcfric()
 {
@@ -311,7 +342,7 @@ void tomlin::inctime()
 
 void tomlin::writedata()
 {
-	ofstream xstream, qstream, tomstream, tstream, avgstream;
+	ofstream xstream, qstream, tomstream, tstream, avgstream, pstream;
 
 	xstream.open(xfile);
 		xstream << "position, velocity, acceleration" << endl;
@@ -338,11 +369,24 @@ void tomlin::writedata()
 	tstream.close();
 
 	avgstream.open(avgfile);
-		avgstream << "time, avg:ed friction " << endl;
+		avgstream << "time, avged friction " << endl;
 		uint size = lessnoisef.size();
 		for (uint k = 0; k < size; k++)
-			avgstream << lessnoiset[k] << "," << lessnoisef[k] << endl;
-}
+			avgstream << lessnoiset[k] << "," << lessnoisef[k] << "," << lessnoisesuppos[k] << endl;
+	avgstream.close();
+	
+	pstream.open(pfile);
+		pstream << "spring " << spring << endl << "supvel " << suppos << endl 
+				<< "align " << align << endl   
+				<< "latcona " << latcona << endl << "latconb "  << latconb  << endl 
+				<< "barr1 "  << barr1  << endl << "barr2 "  << barr2  << endl 
+				<< "kappa1 " << kappa1 << endl << "kappa2 " << kappa2 << endl 
+				<< "nu2 "	  << nu2	<< endl << "nu4 "	 << nu4	   << endl 
+				<< "tstep "  << tstep  << endl << "tsteps " << tsteps << endl 
+				<< "xmass "  << x.mass  << endl << "qmass "  << q.mass  << endl 
+				<< "xdamp "  << x.damp  << endl << "qdamp "  << q.damp  << endl;
+	pstream.close();
+} 
 
 void tomlin::printins()
 {
@@ -375,6 +419,10 @@ void tomlin::printavgs()
 	double avgkin = accumulate(kins.begin(),kins.end(),0.0) / kins.size();
 
 	cout << "avg kin " << avgkin << endl;
+	
+	double avgfric = accumulate(frics.begin(),frics.end(),0.0) / frics.size();
+
+	cout << "avg fric " << avgfric << endl;
 }
 
 void tomlin::rk4()	// two degree of freedom RK4 algorithm
@@ -395,9 +443,9 @@ void tomlin::rk4()	// two degree of freedom RK4 algorithm
 	
 	auto kicks = langevin();	// random kicks from langevin dynamics, see below
 	double xkick = kicks.first;
-	double qkick = kicks.second;
+	//double qkick = kicks.second;
 	//double xkick = 0;			// used for debugging
-	//double qkick = 0;
+	double qkick = 0;
 
 	// k1
 
@@ -483,6 +531,7 @@ void tomlin::rk4()	// two degree of freedom RK4 algorithm
 	q.pos = oldq.pos + tstep*oneosix*(k1q.vel + 2*k2q.vel + 2*k3q.vel + k4q.vel);
 	q.vel = oldq.vel + tstep*oneosix*(k1q.acc + 2*k2q.acc + 2*k3q.acc + k4q.acc);
 
+    x.acc = xkick;
 	// reset the timestep (time is ticked at the end of the main loop)
 	
 	time = oldt;
@@ -505,6 +554,23 @@ pair <double, double> tomlin::langevin()
 	return out;
 }
 
+//pair <double, double> tomlin::testlangevin()
+//{
+//	random_device rd;
+//	mt19937 gen(rd());
+//
+//	double mean = 0;
+//	double xstd = sqrt(2*x.mass*kB*temp*x.damp/tstep);
+//	double qstd = sqrt(2*0.5*(x.mass+q.mass)*kB*temp*0.5*(x.damp+q.damp)/tstep);
+//
+//	normal_distribution<double> xkick(mean,xstd);
+//	normal_distribution<double> qkick(mean,qstd);
+//
+//	pair <double, double> out = {xkick(gen)*x.rmass,qkick(gen)*q.rmass};
+//
+//	return out;
+//}
+
 void tomlin::noisered(uint halfmeansize, uint skip)
 {
 	// building mean for first point
@@ -521,6 +587,7 @@ void tomlin::noisered(uint halfmeansize, uint skip)
 	
 	lessnoiset.reserve(ceil(tsteps/skip));
 	lessnoisef.reserve(ceil(tsteps/skip));
+	lessnoisesuppos.reserve(ceil(tsteps/skip));
 
 	for (uint l = 0; l < its; l++)		
 	{
@@ -542,6 +609,7 @@ void tomlin::noisered(uint halfmeansize, uint skip)
 
 	lessnoiset.push_back(times[midel]);
 	lessnoisef.push_back(avg);
+	lessnoisesuppos.push_back(poss[midel]);
 
 	// calculating rest of means
 
@@ -557,6 +625,7 @@ void tomlin::noisered(uint halfmeansize, uint skip)
 		
 		lessnoiset.push_back(times[midel]);
 		lessnoisef.push_back(avg);
+		lessnoisesuppos.push_back(poss[midel]);
 	}
 }
 
