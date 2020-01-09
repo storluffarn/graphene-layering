@@ -46,7 +46,7 @@ int main()
 	
 	double modif = 0.5;	// 0.5 gives reliable time step dep. 1.0 should be ok
 	double tstep = modif * 3e-14;	
-	uint tsteps = 1.0/modif * 10.0e5;	// has to be even beucasue lazyness
+	uint tsteps = 1.0/modif * 20.0e5;	// has to be even beucasue lazyness
 
 	uint ttoa = ceil(latcon/(tstep));	// timesteps to minima
 
@@ -61,7 +61,7 @@ int main()
 
 	afm.setposx(0*latcon);
 	//afm.setvelx(1.0);
-    afm.setsuppos(0.5*ttoa*tstep);
+    afm.setsuppos(0.0*ttoa*tstep);
     
 	for ( uint k = 0; k < tsteps; k++ )
 	{
@@ -73,11 +73,11 @@ int main()
 		//	afm.treverse();
 		//	cout << "reversing at tstep / t = " << k << " / " << k*tstep << endl;
 		//}
-		//if (k == 20*ttoa)
-		//{
-		//	cout << "pausing at tstep / t = " << k << " / " << k*tstep << endl;
-		//	afm.tpause();
-		//}
+		if (k == 20*ttoa)
+		{
+			cout << "pausing at tstep / t = " << k << " / " << k*tstep << endl;
+			afm.tpause();
+		}
 		//else if (k == 0.9*tsteps)
 		//{
 		//	afm.tpause();

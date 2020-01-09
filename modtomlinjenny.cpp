@@ -181,7 +181,7 @@ int main()
 	
 	double tmp = 0.5;	// 0.5 gives reliable timestep dep. 1.0 should be ok
 	double tstep = tmp * 3e-14;	
-	uint tsteps = 1.0/tmp * 2e5;	// has to be even beucasue lazyness
+	uint tsteps = 1.0/tmp * 40e5;	// has to be even beucasue lazyness
 	
 	string tfile = "time.csv";
 	string xfile = "xout.csv";
@@ -261,15 +261,15 @@ int main()
 		// this rn business is fucking ugly...	
 		//halfintervals(adj, end, stride, afm.gettimes(),afm.getfrics(), &slips);
 		//halfintervals(1, adj, end, stride, afm.getrntimes(),afm.getrnfrics(), &slips);
-        halfintervals(1, adj, end, stride, afm.getrntimes(),afm.getrnfrics(), &slips);
+        halfintervals(2, adj, end, stride, round(pauseat*ttoa/stride), afm.getrntimes(),afm.getrnfrics(), &slips);
 
 		for (auto &el : slips)
 		{
-			if(afm.getrntime(el) > pauseat*ttoa*tstep)
-            {
+			//if(afm.getrntime(el) > pauseat*ttoa*tstep)
+            //{
                 //fspos << afm.getrntime(el) << "," << afm.getrnfric(el) << endl;
 			    fspos << afm.getrntime(el) << "," << afm.getrnfric(el) << "," << afm.getrnsuppos(el) << endl;		// rn is for reduced noise btw, you'll thank me later furure me, thank you passed me // future me
-            }
+            //}
 		}
 		
 		//t2 = std::chrono::high_resolution_clock::now();
@@ -278,7 +278,7 @@ int main()
 
 		//cout << "loop time: " << looptime << endl << "slicetime " << slicetime << endl;
 		
-		if ((l+1) % 10 == 0)
+		if ((l+1) % 5 == 0)
 		{
 			cout << "finished " << l+1 << " out of " << runs <<  " iterations" << endl;
 		}

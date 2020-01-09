@@ -288,7 +288,7 @@ f7, = ax.plot(x4,li,'mX',linewidth=1)
 ax.set_xlim(0.0,4.5)
 ax.set_ylim(0.0,1.75)
 ax.set(xlabel='$\\nu_4 / \\nu_4^0$ or \n number of layers', ylabel='F/F($\\nu_4^0$) or \n friction relative to one layer' )
-ax.legend((f1, f2, f3, f4, f5, f6, f7), ('model sim.', 'analytic', 'graphene [22]', 'MoS2 [22]', 'NbSe2 [22]', 'graphene [6]', 'grahpene [24]'), loc='upper right')
+ax.legend((f1, f2, f3, f4, f5, f6, f7), ('model sim.', 'analytic', 'graphene [4]', 'MoS2 [4]', 'NbSe2 [4]', 'graphene [17]', 'grahpene [5]'), loc='upper right')
 
 ax.xaxis.set_major_locator(ticker.MultipleLocator(1.0))
 ax.xaxis.set_minor_locator(ticker.MultipleLocator(0.5))
