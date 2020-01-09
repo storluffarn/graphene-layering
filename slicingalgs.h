@@ -8,7 +8,7 @@ typedef unsigned int uint;
 static const double zero = 1e-11;
 
 // finding slipping points by inverval halfing
-void halfintervals (uint mode, uint adj, uint end, uint stride, vector <double>* xvals, vector <double>* yvals,  vector <uint>* slips)
+void halfintervals (uint mode, uint adj, uint end, uint stride, uint pauseat, vector <double>* xvals, vector <double>* yvals,  vector <uint>* slips)
 {
 
 	// part I find slipping region
@@ -17,11 +17,11 @@ void halfintervals (uint mode, uint adj, uint end, uint stride, vector <double>*
 
 	uint curr = 0;
 	uint next = stride;
-	bool climbing;
 
     // finding maxima in noisy stick-slip signal
     if (mode == 1)
     {
+	    bool climbing;
 	    while (next < end)
 	    {
 	    	//uint next = start + round(adj+exp(logstep*loops));
@@ -45,44 +45,7 @@ void halfintervals (uint mode, uint adj, uint end, uint stride, vector <double>*
 	    	curr = next;
 	    	next = curr + stride;
 	    }
-    }
-    else if (mode == 2)
-    {
-        vector<double>::iterator maxel;
-        maxel = max_element(yvals->begin(), yvals->end());
-        
-        double max = *maxel;
-        double low = 0.95*max;
-        double bound = max - low;
 
-        cout << max << " " << bound <<  endl;
-
-	    while (next < end)
-	    {
-	    	//uint next = start + round(adj+exp(logstep*loops));
-
-	    	//double x1 = xvals->at(curr);
-	    	//double x2 = xvals->at(next);
-
-	    	double y1 = yvals->at(curr);
-	    	double y2 = yvals->at(next);
-
-	    	double diff = y1 - y2;
-
-	    	if (diff > bound)
-	    	{
-	    		slipsish.push_back(curr);
-	    	}
-
-	    	curr = next;
-	    	next = curr + stride;
-	    }
-    }
-    else
-    {
-        cout << "no slicing operation mode selected, exiting" << endl;
-    }
-	
 	//cout << "slipsish has size: " << slipsish.size() << endl;
 
 	//for (auto &el : slipsish)
@@ -152,6 +115,87 @@ void halfintervals (uint mode, uint adj, uint end, uint stride, vector <double>*
 			slips->push_back(next);
 		}
 	}
+    }
+    else if (mode == 2)
+    {
+        vector<double>::iterator maxel;
+        maxel = max_element(yvals->begin(), yvals->end());
+        
+        double max = *maxel;
+        double low = 0.975*max;
+        double slipbound = max - low;
+        double flatbound = 0.1;
+
+        cout << "max element: " << max << " slipbound used: " << slipbound <<  endl;
+
+	    while (next < end)
+	    {
+	    	//uint next = start + round(adj+exp(logstep*loops));
+
+	    	//double x1 = xvals->at(curr);
+	    	//double x2 = xvals->at(next);
+
+	    	double y1 = yvals->at(curr);
+	    	double y2 = yvals->at(next);
+
+	    	double diff = y1 - y2;
+
+	    	if (diff > slipbound)
+	    	{
+	    		slipsish.push_back(curr);
+	    	}
+
+	    	curr = next;
+	    	next = curr + stride;
+	    }
+        
+        uint ttol = 1000;
+        double slopetol = -2.0;
+        vector <uint> outs; 
+        bool slipped = false;
+
+        for (uint k = 0; k < slipsish.size()-1; k++)
+        {
+            uint slipat = slipsish[k];
+            //cout << "pause: " << pauseat << endl << "k: " << slipat <<  endl;
+            
+            if (slipat > pauseat)
+	        {	
+                double x1 = xvals->at(slipsish[k]);
+	    	    double x2 = xvals->at(slipsish[k+1]);
+
+                double y1 = yvals->at(slipsish[k]);
+	    	    double y2 = yvals->at(slipsish[k+1]);
+
+	    	    double slope = (y2 - y1) / (x2 - x1);
+           
+                //cout << "slope: " << slope << endl;
+
+                if (slope < slopetol && !slipped)
+                {
+                    outs.push_back(slipat);
+                    slipped = true;
+                    //cout << "pushed: " << slipat << endl;
+                }
+                else if (slope > slopetol && slipped)
+                {
+                    slipped = false;
+                    if (k == slipsish.size()-2)
+                    {
+                        outs.push_back(slipsish[k+1]);
+                        //cout << "pushed: " << slipsish[k+1] << endl;
+                    }
+                }
+            }
+        }
+        
+        (*slips) = outs;
+        //(*slips) = slipsish;
+    }
+    else
+    {
+        cout << "no slicing operation mode selected, exiting" << endl;
+    }
 
 	// part III post processing
 	

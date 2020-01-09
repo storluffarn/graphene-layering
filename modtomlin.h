@@ -261,11 +261,11 @@ void tomlin::xacc()
 		rlatcona2pi*(barr1+kappa1*pow(q.pos,2)) * sin(rlatcona2pi*(x.pos-q.pos)) +
 		rlatcona2pi*(barr2+kappa2*pow(q.pos,2)) * sin(rlatcona2pi*align*x.pos);
 	
-	//x.acc = - (x.rmass*force + x.damp*x.vel);
+    x.acc = - (x.rmass*force + x.damp*x.vel);
 	//x.acc = - (x.rmass*force); // use for T = 0 case, remembeer to change for q too! 
 
 	//x.acc = - x.rmass*spring*(x.pos - suppos);
-	x.acc = 0;
+	//x.acc = 0;
 }
 
 //void tomlin::testxacc()
@@ -286,10 +286,10 @@ void tomlin::qacc()
 		2.0*kappa2*q.pos * (1.0-cos(rlatcona2pi*align*x.pos)) + 
 		2.0*nu2*q.pos + 4.0*nu4*pow(q.pos,3);
 	
-	//q.acc = - (q.rmass*force + q.damp*q.vel);
+    q.acc = - (q.rmass*force + q.damp*q.vel);
     //q.acc = - (q.rmass*force);
 
-	q.acc = 0;
+	//q.acc = 0;
 }
 
 //void tomlin::testqacc()
@@ -443,9 +443,9 @@ void tomlin::rk4()	// two degree of freedom RK4 algorithm
 	
 	auto kicks = langevin();	// random kicks from langevin dynamics, see below
 	double xkick = kicks.first;
-	//double qkick = kicks.second;
+	double qkick = kicks.second;
 	//double xkick = 0;			// used for debugging
-	double qkick = 0;
+	//double qkick = 0;
 
 	// k1
 
@@ -531,7 +531,7 @@ void tomlin::rk4()	// two degree of freedom RK4 algorithm
 	q.pos = oldq.pos + tstep*oneosix*(k1q.vel + 2*k2q.vel + 2*k3q.vel + k4q.vel);
 	q.vel = oldq.vel + tstep*oneosix*(k1q.acc + 2*k2q.acc + 2*k3q.acc + k4q.acc);
 
-    x.acc = xkick;
+    //x.acc = xkick;
 	// reset the timestep (time is ticked at the end of the main loop)
 	
 	time = oldt;
