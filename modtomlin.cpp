@@ -46,7 +46,7 @@ int main()
 	
 	double modif = 0.5;	// 0.5 gives reliable time step dep. 1.0 should be ok
 	double tstep = modif * 3e-14;	
-	uint tsteps = 1.0/modif * 20.0e5;	// has to be even beucasue lazyness
+	uint tsteps = 1.0/modif * 2.0e5;	// has to be even beucasue lazyness
 
 	uint ttoa = ceil(latcon/(tstep));	// timesteps to minima
 
@@ -58,26 +58,43 @@ int main()
 	tomlin afm(spring,supvel,latcon,align,barr1,barr2,kappa1,kappa2,
 			   nu2,nu4,temp,tstep,tsteps,xmass,qmass,xdamp,qdamp,
 			   tfile,xfile,qfile,tomfile,"","");
-
-	afm.setposx(0*latcon);
-	//afm.setvelx(1.0);
-    afm.setsuppos(0.0*ttoa*tstep);
+    // incom
+	//afm.setposx(1.23912011781616e-09);
+	//afm.setvelx(0.9995276370265342);
+	//afm.setaccx(18619338513200.46);
+	//afm.setposq(6.874289088010818e-10);
+	//afm.setvelq(1.061307759460043);
+	//afm.setaccq(45478933617766.52);
+    //afm.setsuppos(2.443094999995714e-09);
     
+    // com
+	afm.setposx(1.030613785802745e-09);
+	afm.setvelx(0.9995431014034264);
+	afm.setaccx(18645712950047.95);
+	afm.setposq(7.422256383340498e-10);
+	afm.setvelq(0.5066323077421474);
+	afm.setaccq(21750153167849.19);
+    afm.setsuppos(2.448359999995651e-09);
+    
+
 	for ( uint k = 0; k < tsteps; k++ )
 	{
 		//if (k == 20.0*ttoa)
 		//{	
 		//	afm.tpause();
 		//	cout << "resuming at tstep / t = " << k << " / " << k*tstep << endl;
+        //}
 		//	
-		//	afm.treverse();
-		//	cout << "reversing at tstep / t = " << k << " / " << k*tstep << endl;
+		if (k == 0.5*tsteps)
+        {
+			afm.treverse();
+			cout << "reversing at tstep / t = " << k << " / " << k*tstep << endl;
+        }
+		//if (k == 20*ttoa)
+		//{
+		//	cout << "pausing at tstep / t = " << k << " / " << k*tstep << endl;
+		//	afm.tpause();
 		//}
-		if (k == 20*ttoa)
-		{
-			cout << "pausing at tstep / t = " << k << " / " << k*tstep << endl;
-			afm.tpause();
-		}
 		//else if (k == 0.9*tsteps)
 		//{
 		//	afm.tpause();

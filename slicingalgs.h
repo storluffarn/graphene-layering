@@ -10,7 +10,6 @@ static const double zero = 1e-11;
 // finding slipping points by inverval halfing
 void halfintervals (uint mode, uint adj, uint end, uint stride, uint pauseat, vector <double>* xvals, vector <double>* yvals,  vector <uint>* slips)
 {
-
 	// part I find slipping region
 
 	vector <uint> slipsish;
@@ -122,9 +121,10 @@ void halfintervals (uint mode, uint adj, uint end, uint stride, uint pauseat, ve
         maxel = max_element(yvals->begin(), yvals->end());
         
         double max = *maxel;
-        double low = 0.975*max;
+        double low = 0.95*max;
         double slipbound = max - low;
         double flatbound = 0.1;
+        //slipsish.push_back(pauseat);    
 
         cout << "max element: " << max << " slipbound used: " << slipbound <<  endl;
 
@@ -159,38 +159,49 @@ void halfintervals (uint mode, uint adj, uint end, uint stride, uint pauseat, ve
             uint slipat = slipsish[k];
             //cout << "pause: " << pauseat << endl << "k: " << slipat <<  endl;
             
-            if (slipat > pauseat)
-	        {	
-                double x1 = xvals->at(slipsish[k]);
-	    	    double x2 = xvals->at(slipsish[k+1]);
+            double x1 = xvals->at(slipsish[k]);
+	    	double x2 = xvals->at(slipsish[k+1]);
 
-                double y1 = yvals->at(slipsish[k]);
-	    	    double y2 = yvals->at(slipsish[k+1]);
+            double y1 = yvals->at(slipsish[k]);
+	    	double y2 = yvals->at(slipsish[k+1]);
 
-	    	    double slope = (y2 - y1) / (x2 - x1);
+	    	double slope = (y2 - y1) / (x2 - x1);
            
-                //cout << "slope: " << slope << endl;
+            //cout << "slope: " << slope << endl;
 
-                if (slope < slopetol && !slipped)
+            if (slope < slopetol && !slipped)
+            {
+                outs.push_back(slipat);
+                slipped = true;
+                //cout << "pushed: " << slipat << endl;
+            }
+            else if (slope > slopetol && slipped)
+            {
+                slipped = false;
+                if (k == slipsish.size()-2)
                 {
-                    outs.push_back(slipat);
-                    slipped = true;
-                    //cout << "pushed: " << slipat << endl;
-                }
-                else if (slope > slopetol && slipped)
-                {
-                    slipped = false;
-                    if (k == slipsish.size()-2)
-                    {
-                        outs.push_back(slipsish[k+1]);
-                        //cout << "pushed: " << slipsish[k+1] << endl;
-                    }
+                    outs.push_back(slipsish[k+1]);
+                    //cout << "pushed: " << slipsish[k+1] << endl;
                 }
             }
         }
-        
+       
+        // for slip point use this 
         (*slips) = outs;
-        //(*slips) = slipsish;
+       
+        // for slip time diff use this
+        //if (outs.size() < 2)
+        //{
+        //    (*slips) = outs;
+        //}
+        //else
+        //{
+        //    for (uint k = 0; k < outs.size() - 1; k++)
+        //    {
+        //        auto diff = outs[k+1] - outs[k];
+        //        slips->push_back(diff);
+        //    }
+        //}
     }
     else
     {

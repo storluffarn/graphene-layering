@@ -36,7 +36,7 @@ nscale = 1.0e9  # WARNING this is *only* for plotting, danger!
 #xdata = nscale * xraw[:,0]
 #qdata = nscale * qraw[:,0]
 #fdata = nscale * fraw[:,2]
-#kindata = fraw[:,0]
+##kindata = fraw[:,0]
 #avgs  = nscale * avgraw[:,1]
 #avgst  = nscale * avgraw[:,0]
 #sangx = nscale * sangraw[:,0]
@@ -45,19 +45,29 @@ nscale = 1.0e9  # WARNING this is *only* for plotting, danger!
 #
 #print (sraw)
 #print (len(sraw))
+
+# use this for slip pos dist
+#if len(sraw) == 0 :     # ugly errpr handling
+#    slipst = [0]
+#    slipsf = [0]
+#    slipspos = [0]
+#elif len(sraw) == 3 :   # even uglier, should be it rows = 1
+#    slipst = nscale * sraw[0]
+#    slipsf = nscale * sraw[1]
+#    slipspos = nscale * sraw[2]
+#else :
+#    slipst = nscale * sraw[:,0]
+#    slipsf = nscale * sraw[:,1]
+#    slipspos = nscale * sraw[:,2]
+
+# use this for relax time dist dist
 if len(sraw) == 0 :     # ugly errpr handling
     slipst = [0]
-    slipsf = [0]
-    slipspos = [0]
-elif len(sraw) == 3 :   # even uglier, should be it rows = 1
+elif len(sraw) == 1 :   # even uglier, should be it rows = 1
     slipst = nscale * sraw[0]
-    slipsf = nscale * sraw[1]
-    slipspos = nscale * sraw[2]
 else :
-    slipst = nscale * sraw[:,0]
-    slipsf = nscale * sraw[:,1]
-    slipspos = nscale * sraw[:,2]
-#
+    slipst = nscale * sraw
+
 #fig0, ax = plt.subplots()
 #ax.plot(tdata,sdata)
 #fig0.savefig("plots/plot_vt.png")
@@ -85,7 +95,7 @@ else :
 ##ax.yaxis.grid(True, linestyle='dotted')
 #ax.set(xlabel='t (nm)', ylabel='F (nN)')
 #fig3.savefig("plots/plot_f.png")
-#
+
 ## for debugging
 #
 #fig4, ax = plt.subplots()
@@ -143,7 +153,7 @@ else :
 #
 #print ('mean kinetic energy: {}'.format(kinmean))
 #print ('true mean kinetic energy: {}'.format(0.5*kb*T))
-#
+
 #fig6, ax = plt.subplots()
 #ax.plot(tdata,fdata)
 #ax.plot(slipst,slipsf,'or')

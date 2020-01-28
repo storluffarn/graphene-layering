@@ -11,6 +11,7 @@
 #include <numeric> 
 #include <cmath>
 #include <iostream>
+#include <iomanip>
 #include <algorithm> 
 #include "common_stuff.h"
 //#include <algorithm>
@@ -185,8 +186,10 @@ class tomlin
 	// accessors
 	void setposx(double c){x.pos = c;}
 	void setvelx(double c){x.vel = c;}
+	void setaccx(double c){x.acc = c;}
 	void setposq(double c){q.pos = c;}
 	void setvelq(double c){q.vel = c;}
+	void setaccq(double c){q.acc = c;}
 	void settime(double c){time = c;}
 	void setsuppos(double c){suppos = c;}
 
@@ -271,7 +274,7 @@ void tomlin::xacc()
 //void tomlin::testxacc()
 //{
 //	double force = 
-//		spring*(x.pos-suppos) + 
+//		spring*(x.pos-suppos) +
 //		2*kappa1*(x.pos-q.pos) * ( 1-cos(rlatcona2pi * q.pos) ) + 
 //		2*kappa2*(x.pos-q.pos) * ( 1-cos(rlatconb2pi * x.pos) ) + 
 //		rlatconb2pi*sin(rlatconb2pi*x.pos) * (barr2 + kappa2*pow(x.pos-q.pos,2)) + 
@@ -347,36 +350,37 @@ void tomlin::writedata()
 	xstream.open(xfile);
 		xstream << "position, velocity, acceleration" << endl;
 		for (uint k = 0; k < tsteps; k++)
-			xstream << x.poss[k] << "," << x.vels[k] << "," << x.accs[k] << endl;
+			xstream << setprecision(16) << x.poss[k] << "," << x.vels[k] << "," << x.accs[k] << endl;
 	xstream.close();
 	
 	qstream.open(qfile);
 		qstream << "position, velocity, acceleration" << endl;
 		for (uint k = 0; k < tsteps; k++)
-			qstream << q.poss[k] << "," << q.vels[k] << "," << q.accs[k] << endl;
+			qstream << setprecision(16) << q.poss[k] << "," << q.vels[k] << "," << q.accs[k] << endl;
 	qstream.close();
 	
 	tomstream.open(tomfile);
 		tomstream << "kinetic, potential, friction" << endl;
 		for (uint k = 0; k < tsteps; k++)
-			tomstream << kins[k] << "," << pots[k] << "," << frics[k] << endl;
+			tomstream << setprecision(16) << setprecision(16) << kins[k] << "," << pots[k] << "," << frics[k] << endl;
 	tomstream.close();
 
 	tstream.open(tfile);
 		tstream << "time, displacement" << endl;
 		for (uint k = 0; k < tsteps; k++)
-			tstream << times[k] << "," << poss[k] << endl;
+			tstream << setprecision(16) << times[k] << "," << poss[k] << endl;
 	tstream.close();
 
 	avgstream.open(avgfile);
 		avgstream << "time, avged friction " << endl;
 		uint size = lessnoisef.size();
 		for (uint k = 0; k < size; k++)
-			avgstream << lessnoiset[k] << "," << lessnoisef[k] << "," << lessnoisesuppos[k] << endl;
+			avgstream << setprecision(16) << lessnoiset[k] << "," << lessnoisef[k] << "," << lessnoisesuppos[k] << endl;
 	avgstream.close();
 	
 	pstream.open(pfile);
-		pstream << "spring " << spring << endl << "supvel " << suppos << endl 
+		pstream << setprecision(16) 
+                << "spring " << spring << endl << "supvel " << suppos << endl 
 				<< "align " << align << endl   
 				<< "latcona " << latcona << endl << "latconb "  << latconb  << endl 
 				<< "barr1 "  << barr1  << endl << "barr2 "  << barr2  << endl 
