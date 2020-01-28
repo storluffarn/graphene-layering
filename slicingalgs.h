@@ -126,7 +126,7 @@ void halfintervals (uint mode, uint adj, uint end, uint stride, uint pauseat, ve
         double flatbound = 0.1;
         //slipsish.push_back(pauseat);    
 
-        cout << "max element: " << max << " slipbound used: " << slipbound <<  endl;
+        //cout << "max element: " << max << " slipbound used: " << slipbound <<  endl;
 
 	    while (next < end)
 	    {

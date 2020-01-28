@@ -221,110 +221,130 @@ int main()
 	uint end = round(tsteps/skip)-skip;		// this is a bit risky, size should be constant over many runs though...
 	
     uint pauseat = 20;
-	uint runs = 10;
-
-	for ( uint l = 0; l < runs; l++)
-	{	
-		tomlin afm(spring,supvel,latcon,align,barr1,barr2,kappa1,kappa2,
-			   nu2,nu4,temp,tstep,tsteps,xmass,qmass,xdamp,qdamp,
-			   tfile,xfile,qfile,ffile,avgfile,pfile);
-		vector <uint> slips;
-
-		//chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
-        
-        // incom
-        //afm.setposx(1.23912011781616e-09);
-	    //afm.setvelx(0.9995276370265342);
-	    //afm.setaccx(18619338513200.46);
-	    //afm.setposq(6.874289088010818e-10);
-	    //afm.setvelq(1.061307759460043);
-	    //afm.setaccq(45478933617766.52);
-        //afm.setsuppos(2.443094999995714e-09);
-        //uint startt = 157832;
-	
-        // com
-        afm.setposx(1.030613785802745e-09);
-	    afm.setvelx(0.9995431014034264);
-	    afm.setaccx(18645712950047.95);
-	    afm.setposq(7.422256383340498e-10);
-	    afm.setvelq(0.5066323077421474);
-	    afm.setaccq(21750153167849.19);
-        afm.setsuppos(2.448359999995651e-09);
-        uint startt = 163224;
-
-		for ( uint k = 0; k < tsteps; k++ )
-		{
-			//cout << "now begnning loop: " << k << endl;
-
-            //if (k == pauseat*ttoa)
-            //{
-            //    afm.tpause();
-            //}
-
-			afm.rk4();
-			afm.calcfric();
-					
-			// multiple algorithms available, see separate .h file
-			
-			afm.pushvals();			
-			afm.inctime();
-		}
+	uint runs = 8;
 		
-		//chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
-
-		//double looptime = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
-	
-		afm.noisered(halfmeansize,skip);	
-		//afm.writedata();		// ONLY FOR DIAGNOSTICS REMOVE LATER (it won't make sense)
-		
-		//t1 = std::chrono::high_resolution_clock::now();
-	
-		// this rn business is fucking ugly...	
-		//halfintervals(adj, end, stride, afm.gettimes(),afm.getfrics(), &slips);
-		//halfintervals(1, adj, end, stride,round(pauseat*ttoa/stride), afm.getrntimes(),afm.getrnfrics(), &slips);
-		halfintervals(2, adj, end, stride,round(pauseat*ttoa/stride), afm.getrntimes(),afm.getrnfrics(), &slips);
-        //halfintervals(2, adj, end, stride, startt, afm.getrntimes(),afm.getrnfrics(), &slips);
-
-		//for (auto &el : slips)
-		//{
-		//	//if(afm.getrntime(el) > pauseat*ttoa*tstep)
-        //    //{
-        //        //fspos << afm.getrntime(el) << "," << afm.getrnfric(el) << endl;
-		//	    fspos << afm.getrntime(el) << "," << afm.getrnfric(el) << "," << afm.getrnsuppos(el) << endl;		// rn is for reduced noise btw, you'll thank me later furure me, thank you passed me // future me
-        //    //}
-		//}
+    //chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+    
+    vector <double> publicdecay;
+    
+    #pragma omp parallel
+    {
+	    vector <double> privatedecay;
         
-        //printvectoruint(&slips);
+        #pragma omp for nowait
+	    for ( uint l = 0; l < runs; l++)
+	    {	
+	    	tomlin afm(spring,supvel,latcon,align,barr1,barr2,kappa1,kappa2,
+	    		   nu2,nu4,temp,tstep,tsteps,xmass,qmass,xdamp,qdamp,
+	    		   tfile,xfile,qfile,ffile,avgfile,pfile);
+            
+            vector <uint> slips;
 
-        if (slips.size() > 1)
-        {
-            for (uint k = 0; k < slips.size() - 1; k++)
+            // incom
+            //afm.setposx(1.23912011781616e-09);
+	        //afm.setvelx(0.9995276370265342);
+	        //afm.setaccx(18619338513200.46);
+	        //afm.setposq(6.874289088010818e-10);
+	        //afm.setvelq(1.061307759460043);
+	        //afm.setaccq(45478933617766.52);
+            //afm.setsuppos(2.443094999995714e-09);
+            //uint startt = 157832;
+	    
+            // com
+            afm.setposx(1.030613785802745e-09);
+	        afm.setvelx(0.9995431014034264);
+	        afm.setaccx(18645712950047.95);
+	        afm.setposq(7.422256383340498e-10);
+	        afm.setvelq(0.5066323077421474);
+	        afm.setaccq(21750153167849.19);
+            afm.setsuppos(2.448359999995651e-09);
+            uint startt = 163224;
+
+	    	for ( uint k = 0; k < tsteps; k++ )
+	    	{
+	    		//cout << "now begnning loop: " << k << endl;
+
+                //if (k == pauseat*ttoa)
+                //{
+                //    afm.tpause();
+                //}
+
+	    		afm.rk4();
+	    		afm.calcfric();
+	    				
+	    		// multiple algorithms available, see separate .h file
+	    		
+	    		afm.pushvals();			
+	    		afm.inctime();
+	    	}
+	    	
+	    
+	    	afm.noisered(halfmeansize,skip);	
+	    	//afm.writedata();		// ONLY FOR DIAGNOSTICS REMOVE LATER (it won't make sense)
+	    	
+	    	//t1 = std::chrono::high_resolution_clock::now();
+	    
+	    	// this rn business is fucking ugly...	
+	    	//halfintervals(adj, end, stride, afm.gettimes(),afm.getfrics(), &slips);
+	    	//halfintervals(1, adj, end, stride,round(pauseat*ttoa/stride), afm.getrntimes(),afm.getrnfrics(), &slips);
+	    	halfintervals(2, adj, end, stride,round(pauseat*ttoa/stride), afm.getrntimes(),afm.getrnfrics(), &slips);
+            //halfintervals(2, adj, end, stride, startt, afm.getrntimes(),afm.getrnfrics(), &slips);
+
+	    	//for (auto &el : slips)
+	    	//{
+	    	//	//if(afm.getrntime(el) > pauseat*ttoa*tstep)
+            //    //{
+            //        //fspos << afm.getrntime(el) << "," << afm.getrnfric(el) << endl;
+	    	//	    fspos << afm.getrntime(el) << "," << afm.getrnfric(el) << "," << afm.getrnsuppos(el) << endl;		// rn is for reduced noise btw, you'll thank me later furure me, thank you passed me // future me
+            //    //}
+	    	//}
+            
+            //printvectoruint(&slips);
+
+            if (slips.size() > 1)
             {
-                uint el1 = slips[k];
-                uint el2 = slips[k+1];
-                double diff = afm.getrntime(el2) - afm.getrntime(el1);  
-                cout << el1 << " " << el2 << " " << diff << endl;
-		        fspos << diff << endl;		// rn is for reduced noise btw, you'll thank me later furure me, thank you passed me // future me
+                for (uint k = 0; k < slips.size() - 1; k++)
+                {
+                    uint el1 = slips[k];
+                    uint el2 = slips[k+1];
+                    double diff = afm.getrntime(el2) - afm.getrntime(el1);  
+                    //cout << el1 << " " << el2 << " " << diff << endl;
+	    	        privatedecay.push_back(diff);		// rn is for reduced noise btw, you'll thank me later furure me, thank you passed me // future me
+                }
             }
-        }
-        //else if (slips.size() == 1)
-        //    fspos << slips[0] << endl;
-        //else 
-        //    fspos << 0 << endl;
+            //else if (slips.size() == 1)
+            //    fspos << slips[0] << endl;
+            //else 
+            //    fspos << 0 << endl;
 
-		//t2 = std::chrono::high_resolution_clock::now();
-		
-		//double slicetime = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
+	    	//t2 = std::chrono::high_resolution_clock::now();
+	    	
+	    	//double slicetime = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
 
-		//cout << "loop time: " << looptime << endl << "slicetime " << slicetime << endl;
-		
-		if ((l+1) % 5 == 0)
-		{
-			cout << "finished " << l+1 << " out of " << runs <<  " iterations" << endl;
-		}
-		
-	}	
+	    	//cout << "loop time: " << looptime << endl << "slicetime " << slicetime << endl;
+	    	
+	    	//if ((l+1) % 5 == 0)
+	    	//{
+	    	//	cout << "finished " << l+1 << " out of " << runs <<  " iterations" << endl;
+	    	//}
+	    	
+	    }
+        #pragma omp critical
+        publicdecay.insert(publicdecay.end(), privatedecay.begin(), privatedecay.end());
 
+
+    }    
+	//chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+
+	//double looptime = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
+
+    //cout << looptime << endl;
+
+    for (auto &el : publicdecay)
+    {
+        fspos << el << endl;
+    }
+    
 	fspos.close();
 
 
