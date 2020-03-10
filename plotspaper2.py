@@ -16,37 +16,41 @@ tstep = modif * 3e-14
 steps = 1.0/modif * 10.0e5	
 alltime = steps*tstep 
 
-#traw = np.loadtxt(open("time.csv", "rb"), delimiter=",", skiprows=1)
-#xraw = np.loadtxt(open("xout.csv", "rb"), delimiter=",", skiprows=1)
-#qraw = np.loadtxt(open("qout.csv", "rb"), delimiter=",", skiprows=1)
-#fraw = np.loadtxt(open("tomout.csv", "rb"), delimiter=",", skiprows=1)
-sraw = np.loadtxt(open("slips.csv", "rb"), delimiter=",", skiprows=0)
-#avgraw = np.loadtxt(open("avgs.csv", "rb"), delimiter=",", skiprows=1)
+traw = np.loadtxt(open("time.csv", "rb"), delimiter=",", skiprows=1)
+xraw = np.loadtxt(open("xout.csv", "rb"), delimiter=",", skiprows=1)
+qraw = np.loadtxt(open("qout.csv", "rb"), delimiter=",", skiprows=1)
+fraw = np.loadtxt(open("tomout.csv", "rb"), delimiter=",", skiprows=1)
+sraw = np.loadtxt(open("slips.csv", "rb"), delimiter=",", skiprows=1)
+avgraw = np.loadtxt(open("avgs.csv", "rb"), delimiter=",", skiprows=1)
 #sangraw = np.loadtxt(open("sangslips.csv", "rb"), delimiter=",", skiprows=0)
 #
-#params = {}
-#with open("params.dat") as f:
-#    for line in f:
-#        (key,val) = line.split()
-#        params[key] = float(val)
-#
+params = {}
+with open("params.dat") as f:
+    for line in f:
+        (key,val) = line.split()
+        params[key] = float(val)
+
 nscale = 1.0e9  # WARNING this is *only* for plotting, danger!
-#tdata = nscale * traw[:,0]
-#sdata = nscale * traw[:,1]
-#xdata = nscale * xraw[:,0]
-#qdata = nscale * qraw[:,0]
-#fdata = nscale * fraw[:,2]
-##kindata = fraw[:,0]
-#avgs  = nscale * avgraw[:,1]
-#avgst  = nscale * avgraw[:,0]
+
+tdata = nscale * traw[:,0]
+sdata = nscale * traw[:,1]
+xdata = nscale * xraw[:,0]
+qdata = nscale * qraw[:,0]
+fdata = nscale * fraw[:,2]
+supdata = nscale * traw[:,1]
+#kindata = fraw[:,0]
+avgs  = nscale * avgraw[:,1]
+avgst  = nscale * avgraw[:,0]
 #sangx = nscale * sangraw[:,0]
 #sangy = nscale * sangraw[:,1]
 #xaccdata = xraw[:,2]
+slipst = nscale * sraw[:,0]
+slipsf = nscale * sraw[:,1]
 #
 #print (sraw)
 #print (len(sraw))
 
-# use this for slip pos dist
+## use this for slip pos dist
 #if len(sraw) == 0 :     # ugly errpr handling
 #    slipst = [0]
 #    slipsf = [0]
@@ -61,40 +65,43 @@ nscale = 1.0e9  # WARNING this is *only* for plotting, danger!
 #    slipspos = nscale * sraw[:,2]
 
 # use this for relax time dist dist
-if len(sraw) == 0 :     # ugly errpr handling
-    slipst = [0]
-elif len(sraw) == 1 :   # even uglier, should be it rows = 1
-    slipst = nscale * sraw[0]
-else :
-    slipst = nscale * sraw
+#if len(sraw) == 0 :     # ugly errpr handling
+#    slipst = [0]
+#elif len(sraw) == 1 :   # even uglier, should be it rows = 1
+#    slipst = nscale * sraw[0]
+#else :
+#    slipst = nscale * sraw
 
-#fig0, ax = plt.subplots()
-#ax.plot(tdata,sdata)
-#fig0.savefig("plots/plot_vt.png")
-#
-#fig1, ax = plt.subplots()
-#ax.plot(tdata,xdata)
-#ax.set(xlabel='t (nm)', ylabel='x (nm)')
-##ax.xaxis.set_major_locator(ticker.MultipleLocator(1.0))
-##ax.xaxis.set_minor_locator(ticker.MultipleLocator(0.25))
-##ax.xaxis.grid(True, which='minor',linestyle='dotted')
-##ax.yaxis.grid(True, linestyle='dotted')
-#fig1.savefig("plots/plot_x.png")
-#
-#fig2, ax = plt.subplots()
-#ax.plot(tdata,qdata)
-#ax.set(xlabel='t (nm)', ylabel='q (nm)')
-#fig2.savefig("plots/plot_q.png")
-#
-#fig3, ax = plt.subplots()
-#ax.plot(tdata,fdata)
-#ax.set(xlabel='t (nm)', ylabel='x (nm)')
-##ax.xaxis.set_major_locator(ticker.MultipleLocator(1.0))
-##ax.xaxis.set_minor_locator(ticker.MultipleLocator(0.25))
-##ax.xaxis.grid(True, which='minor',linestyle='dotted')
-##ax.yaxis.grid(True, linestyle='dotted')
-#ax.set(xlabel='t (nm)', ylabel='F (nN)')
-#fig3.savefig("plots/plot_f.png")
+fig0, ax = plt.subplots()
+ax.plot(tdata,sdata)
+fig0.savefig("plots/plot_vt.png")
+
+fig1, ax = plt.subplots()
+ax.plot(tdata,xdata)
+ax.set(xlabel='t (nm)', ylabel='x (nm)')
+#ax.xaxis.set_major_locator(ticker.MultipleLocator(1.0))
+#ax.xaxis.set_minor_locator(ticker.MultipleLocator(0.25))
+#ax.xaxis.grid(True, which='minor',linestyle='dotted')
+#ax.xaxis.grid(True, which='major',linestyle='dotted')
+#ax.yaxis.grid(True, linestyle='dotted')
+fig1.savefig("plots/plot_x.png")
+
+fig2, ax = plt.subplots()
+ax.plot(tdata,qdata)
+ax.set(xlabel='t (nm)', ylabel='q (nm)')
+fig2.savefig("plots/plot_q.png")
+
+fig3, ax = plt.subplots()
+ax.plot(tdata,fdata)
+#ax.plot(supdata,fdata)
+ax.set(xlabel='t (nm)', ylabel='x (nm)')
+#ax.xaxis.set_major_locator(ticker.MultipleLocator(1.0))
+#ax.xaxis.set_minor_locator(ticker.MultipleLocator(0.25))
+#ax.xaxis.grid(True, which='minor',linestyle='dotted')
+#ax.xaxis.grid(True, which='major',linestyle='dotted')
+#ax.yaxis.grid(True, linestyle='dotted')
+ax.set(xlabel='t (nm)', ylabel='F (nN)')
+fig3.savefig("plots/plot_f.png")
 
 ## for debugging
 #
@@ -154,33 +161,33 @@ else :
 #print ('mean kinetic energy: {}'.format(kinmean))
 #print ('true mean kinetic energy: {}'.format(0.5*kb*T))
 
-#fig6, ax = plt.subplots()
-#ax.plot(tdata,fdata)
-#ax.plot(slipst,slipsf,'or')
-#ax.set(xlabel='t (nm)', ylabel='x (nm)')
-##ax.xaxis.set_major_locator(ticker.MultipleLocator(1.0))
-##ax.xaxis.set_minor_locator(ticker.MultipleLocator(0.25))
-##ax.xaxis.grid(True, which='minor',linestyle='dotted')
-##ax.yaxis.grid(True, linestyle='dotted')
-#ax.set(xlabel='t (nm)', ylabel='F (nN)')
-#fig6.savefig("plots/plot_fs.png")
+fig6, ax = plt.subplots()
+ax.plot(tdata,fdata)
+ax.plot(slipst,slipsf,'or')
+ax.set(xlabel='t (nm)', ylabel='x (nm)')
+#ax.xaxis.set_major_locator(ticker.MultipleLocator(1.0))
+#ax.xaxis.set_minor_locator(ticker.MultipleLocator(0.25))
+#ax.xaxis.grid(True, which='minor',linestyle='dotted')
+#ax.yaxis.grid(True, linestyle='dotted')
+ax.set(xlabel='t (nm)', ylabel='F (nN)')
+fig6.savefig("plots/plot_fs.png")
 #
-#fig7, ax = plt.subplots()
-#ax.plot(tdata,fdata)
-#ax.plot(avgst,avgs)
-#ax.set(xlabel='t (nm)', ylabel='x (nm)')
+fig7, ax = plt.subplots()
+ax.plot(tdata,fdata)
+ax.plot(avgst,avgs)
+ax.set(xlabel='t (nm)', ylabel='x (nm)')
 #ax.xaxis.set_major_locator(ticker.MultipleLocator(1.0))
 #ax.xaxis.set_minor_locator(ticker.MultipleLocator(0.25))
 #ax.xaxis.grid(True, which='minor',linestyle='dotted')
 #ax.yaxis.grid(True, linestyle='dotted')
 #ax.set(xlabel='t (nm)', ylabel='F (nN)')
-#fig7.savefig("plots/plot_favg.png")
+fig7.savefig("plots/plot_favg.png")
 
-fig8, ax = plt.subplots()
-nbins = 250
-n,f1,patches = ax.hist(slipst,nbins,edgecolor='black')
-ax.set(xlabel='t (ns)', ylabel='count')
-fig8.savefig("plots/slip_hist.png")
+#fig8, ax = plt.subplots()
+#nbins = 250
+#n,f1,patches = ax.hist(slipst,nbins,edgecolor='black')
+#ax.set(xlabel='t (ns)', ylabel='count')
+#fig8.savefig("plots/slip_hist.png")
 
 #fig9, ax = plt.subplots()
 #

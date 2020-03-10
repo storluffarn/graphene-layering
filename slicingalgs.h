@@ -10,14 +10,14 @@ static const double zero = 1e-11;
 // finding slipping points by inverval halfing
 void halfintervals (uint mode, uint adj, uint end, uint stride, uint pauseat, vector <double>* xvals, vector <double>* yvals,  vector <uint>* slips)
 {
-	// part I find slipping region
 
 	vector <uint> slipsish;
 
 	uint curr = 0;
 	uint next = stride;
 
-    // finding maxima in noisy stick-slip signal
+	// method I: identify slipping regions by slope, then fins slipping points
+    // by interval halving
     if (mode == 1)
     {
 	    bool climbing;
@@ -51,8 +51,6 @@ void halfintervals (uint mode, uint adj, uint end, uint stride, uint pauseat, ve
 	//	cout << el << endl;
 	//cout << endl;
 	
-	// part II find slipping point
-
 	slips->reserve(round(end/( (double) stride )));
 	
 	for (uint k = 0; k < slipsish.size() - 1; k++)
@@ -115,15 +113,16 @@ void halfintervals (uint mode, uint adj, uint end, uint stride, uint pauseat, ve
 		}
 	}
     }
+    // method II find slipping rebion by difference tolerance, then find 
+    // slipping points by lope, use this for relaxation
     else if (mode == 2)
     {
         vector<double>::iterator maxel;
         maxel = max_element(yvals->begin(), yvals->end());
         
         double max = *maxel;
-        double low = 0.95*max;
+        double low = 0.985*max;
         double slipbound = max - low;
-        double flatbound = 0.1;
         //slipsish.push_back(pauseat);    
 
         //cout << "max element: " << max << " slipbound used: " << slipbound <<  endl;
@@ -149,7 +148,6 @@ void halfintervals (uint mode, uint adj, uint end, uint stride, uint pauseat, ve
 	    	next = curr + stride;
 	    }
         
-        uint ttol = 1000;
         double slopetol = -2.0;
         vector <uint> outs; 
         bool slipped = false;
@@ -207,25 +205,6 @@ void halfintervals (uint mode, uint adj, uint end, uint stride, uint pauseat, ve
     {
         cout << "no slicing operation mode selected, exiting" << endl;
     }
-
-	// part III post processing
-	
-//	for (uint k = 0; k < slips->size()-1; k++)
-//	{
-//		uint curr = slips->at(k);
-//		uint next = slips->at(k+1);
-//		
-//		double y1 = afm->getfric(curr);
-//		double y2 = afm->getfric(curr+1000*adj);
-//	
-//		// remove duplicates
-//		if (next - curr < 250*adj)
-//			slips->erase(slips->begin() + k+1);
-//		
-//		// remove semi-slips
-//		else if (y1 - y2 < zero)
-//			slips->erase(slips->begin() + k+1);
-//	}
 }
 
 

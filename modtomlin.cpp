@@ -58,6 +58,10 @@ int main()
 	tomlin afm(spring,supvel,latcon,align,barr1,barr2,kappa1,kappa2,
 			   nu2,nu4,temp,tstep,tsteps,xmass,qmass,xdamp,qdamp,
 			   tfile,xfile,qfile,tomfile,"","");
+	
+    
+    //afm.setposx(1e-10);
+    
     // incom
 	//afm.setposx(1.23912011781616e-09);
 	//afm.setvelx(0.9995276370265342);
@@ -68,13 +72,13 @@ int main()
     //afm.setsuppos(2.443094999995714e-09);
     
     // com
-	afm.setposx(1.030613785802745e-09);
-	afm.setvelx(0.9995431014034264);
-	afm.setaccx(18645712950047.95);
-	afm.setposq(7.422256383340498e-10);
-	afm.setvelq(0.5066323077421474);
-	afm.setaccq(21750153167849.19);
-    afm.setsuppos(2.448359999995651e-09);
+	//afm.setposx(1.030613785802745e-09);
+	//afm.setvelx(0.9995431014034264);
+	//afm.setaccx(18645712950047.95);
+	//afm.setposq(7.422256383340498e-10);
+	//afm.setvelq(0.5066323077421474);
+	//afm.setaccq(21750153167849.19);
+    //afm.setsuppos(2.448359999995651e-09);
     
 
 	for ( uint k = 0; k < tsteps; k++ )
@@ -85,11 +89,16 @@ int main()
 		//	cout << "resuming at tstep / t = " << k << " / " << k*tstep << endl;
         //}
 		//	
-		if (k == 0.5*tsteps)
-        {
-			afm.treverse();
-			cout << "reversing at tstep / t = " << k << " / " << k*tstep << endl;
-        }
+		//if (k == 0.25*tsteps)
+        //{
+		//	afm.treverse();
+		//	cout << "reversing at tstep / t = " << k << " / " << k*tstep << endl;
+        //}
+		//if (k == 0.7*tsteps) //25 and 70 gives more or less match up
+        //{
+		//	afm.treverse();
+		//	cout << "reversing at tstep / t = " << k << " / " << k*tstep << endl;
+        //}
 		//if (k == 20*ttoa)
 		//{
 		//	cout << "pausing at tstep / t = " << k << " / " << k*tstep << endl;

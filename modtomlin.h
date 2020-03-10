@@ -146,6 +146,12 @@ class tomlin
 	vector <double> poss;	
 	vector <double> lessnoiset;
 	vector <double> lessnoisef;
+	vector <double> lessnoisexpos;
+	vector <double> lessnoisexvel;
+	vector <double> lessnoisexacc;
+	vector <double> lessnoiseqpos;
+	vector <double> lessnoiseqvel;
+	vector <double> lessnoiseqacc;
 	vector <double> lessnoisesuppos;
 
 	// functions
@@ -208,6 +214,12 @@ class tomlin
 	double getsuppos(){return suppos;} 
 	double getrnfric(double t) {return lessnoisef[t];}
 	double getrntime(double t) {return lessnoiset[t];}
+	double getrnxpos(double t) {return lessnoisexpos[t];}
+	double getrnxvel(double t) {return lessnoisexvel[t];}
+	double getrnxacc(double t) {return lessnoisexacc[t];}
+	double getrnqpos(double t) {return lessnoiseqpos[t];}
+	double getrnqvel(double t) {return lessnoiseqvel[t];}
+	double getrnqacc(double t) {return lessnoiseqacc[t];}
 	double getrnsuppos(double t) {return lessnoisesuppos[t];}
 
 	vector <double>* getposs() {return &x.poss;}
@@ -264,8 +276,7 @@ void tomlin::xacc()
 		rlatcona2pi*(barr1+kappa1*pow(q.pos,2)) * sin(rlatcona2pi*(x.pos-q.pos)) +
 		rlatcona2pi*(barr2+kappa2*pow(q.pos,2)) * sin(rlatcona2pi*align*x.pos);
 	
-    x.acc = - (x.rmass*force + x.damp*x.vel);
-	//x.acc = - (x.rmass*force); // use for T = 0 case, remembeer to change for q too! 
+    x.acc = - (x.rmass*force);
 
 	//x.acc = - x.rmass*spring*(x.pos - suppos);
 	//x.acc = 0;
@@ -289,7 +300,7 @@ void tomlin::qacc()
 		2.0*kappa2*q.pos * (1.0-cos(rlatcona2pi*align*x.pos)) + 
 		2.0*nu2*q.pos + 4.0*nu4*pow(q.pos,3);
 	
-    q.acc = - (q.rmass*force + q.damp*q.vel);
+    q.acc = - (q.rmass*force);
     //q.acc = - (q.rmass*force);
 
 	//q.acc = 0;
@@ -344,7 +355,7 @@ void tomlin::inctime()
 }
 
 void tomlin::writedata()
-{
+{ 
 	ofstream xstream, qstream, tomstream, tstream, avgstream, pstream;
 
 	xstream.open(xfile);
@@ -470,8 +481,8 @@ void tomlin::rk4()	// two degree of freedom RK4 algorithm
 	// * acceleration is the acceleration as calculated from the start of timestep 
 	//   configuration langevin thermostated since no time has elapsed
 
-	k k1x = {x.vel,  x.acc - x.vel * x.damp + xkick};
-	k k1q = {q.vel,  q.acc - q.vel * q.damp + qkick};
+	k k1x = {x.vel, x.acc - x.vel * x.damp + xkick};
+	k k1q = {q.vel, q.acc - q.vel * q.damp + qkick};
 	
 	// k2
 	
@@ -591,6 +602,12 @@ void tomlin::noisered(uint halfmeansize, uint skip)
 	
 	lessnoiset.reserve(ceil(tsteps/skip));
 	lessnoisef.reserve(ceil(tsteps/skip));
+	lessnoisexpos.reserve(ceil(tsteps/skip));
+	lessnoisexvel.reserve(ceil(tsteps/skip));
+	lessnoisexacc.reserve(ceil(tsteps/skip));
+	lessnoiseqpos.reserve(ceil(tsteps/skip));
+	lessnoiseqvel.reserve(ceil(tsteps/skip));
+	lessnoiseqacc.reserve(ceil(tsteps/skip));
 	lessnoisesuppos.reserve(ceil(tsteps/skip));
 
 	for (uint l = 0; l < its; l++)		
@@ -612,7 +629,13 @@ void tomlin::noisered(uint halfmeansize, uint skip)
 	avg = rmeansize * sum;
 
 	lessnoiset.push_back(times[midel]);
-	lessnoisef.push_back(avg);
+    lessnoisef.push_back(avg);
+	lessnoisexpos.push_back(times[midel]);
+	lessnoisexvel.push_back(times[midel]);
+	lessnoisexacc.push_back(times[midel]);
+	lessnoiseqpos.push_back(times[midel]);
+	lessnoiseqvel.push_back(times[midel]);
+	lessnoiseqacc.push_back(times[midel]);
 	lessnoisesuppos.push_back(poss[midel]);
 
 	// calculating rest of means
@@ -629,6 +652,12 @@ void tomlin::noisered(uint halfmeansize, uint skip)
 		
 		lessnoiset.push_back(times[midel]);
 		lessnoisef.push_back(avg);
+	    lessnoisexpos.push_back(x.poss[midel]);
+    	lessnoisexvel.push_back(x.vels[midel]);
+    	lessnoisexacc.push_back(x.accs[midel]);
+    	lessnoiseqpos.push_back(q.poss[midel]);
+    	lessnoiseqvel.push_back(q.vels[midel]);
+    	lessnoiseqacc.push_back(q.accs[midel]);
 		lessnoisesuppos.push_back(poss[midel]);
 	}
 }

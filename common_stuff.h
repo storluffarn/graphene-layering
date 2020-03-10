@@ -22,9 +22,9 @@ const double barref = 5.0e-20; // 4.0e-20 for double slips // 5.0 for single sli
 const double kapparef = 0.0612245;
 
 const double spring = 1e-0* 2.0;          // 2.0 //1e-4 for harmonic
-const double supvel = 0.0;                // 1.0
+const double supvel = 1.0;                // 1.0
 const double latcon = 2.5e-10;            // 2.5e-10
-const double barr1 = barref;              // 
+const double barr1 = barref;             // 
 const double barr2 = 0.5 * barref;
 const double kappa1 = kapparef;
 const double kappa2 = 0.5 * kapparef;
@@ -38,7 +38,7 @@ const double xdamp = 1.875e13;
 const double qmass = 3.67143e-24;
 const double qdamp = 4.28571e13;
 
-const double temp = 400;  // 5e48 lest we'd forget
+const double temp = 300;  // 5e48 lest we'd forget
 
 // derived constants
 const double latcona = 2.5e-10;            // 2.5e-10
