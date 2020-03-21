@@ -218,7 +218,7 @@ int main()
 	//uint stride = ttoa / 4.0);
 	//uint end = tsteps;
 	uint adj = 1;
-	uint stride = 50;
+	uint stride = 1000;      // this was 50 efore i started fiddling...
 	uint end = round(tsteps/skip)-skip;		// this is a bit risky, size should be constant over many runs though...
 	
     uint pauseat = 20;
@@ -287,7 +287,8 @@ int main()
 	    
 	    	// this rn business is fooken ugly...	
 	    	//halfintervals(adj, end, stride, afm.gettimes(),afm.getfrics(), &slips);
-	    	halfintervals(1, adj, end, stride,round(pauseat*ttoa/stride), afm.getrntimes(),afm.getrnfrics(), &slips);
+	    	halfintervals(2, adj, end, stride,round(pauseat*ttoa/stride), afm.getrntimes(),afm.getrnfrics(), &slips);
+            cout << "finished slicing" << endl;
 	    	//halfintervals(2, adj, end, stride,round(pauseat*ttoa/stride), afm.getrntimes(),afm.getrnfrics(), &slips);
 
 	    	//for (auto &el : slips)

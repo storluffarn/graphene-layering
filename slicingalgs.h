@@ -113,9 +113,96 @@ void halfintervals (uint mode, uint adj, uint end, uint stride, uint pauseat, ve
 		}
 	}
     }
+    else if (mode == 2)
+    {
+	    bool climbing;
+	    while (next < end)
+	    {
+	    	//uint next = start + round(adj+exp(logstep*loops));
+
+	    	double x1 = xvals->at(curr);
+	    	double x2 = xvals->at(next);
+
+	    	double y1 = yvals->at(curr);
+	    	double y2 = yvals->at(next);
+
+	    	double slope = (y2 - y1) / (x2 - x1);
+
+	    	if (slope > 0.0)
+	    		climbing = true;
+
+	    	if (slope < 0.0 && climbing)
+	    	{
+	    		climbing = false;
+	    		slipsish.push_back(next);
+	    	}
+	    	curr = next;
+	    	next = curr + stride;
+	    }
+
+	//cout << "slipsish has size: " << slipsish.size() << endl;
+
+	//for (auto &el : slipsish)
+	//	cout << el << endl;
+	//cout << endl;
+	
+	slips->reserve(round(end/( (double) stride )));
+	
+	for (uint k = 0; k < slipsish.size() - 1; k++)
+	{
+
+        uint curr = slipsish[k];
+        uint prev = curr - stride;
+        uint next = curr + stride;
+        uint distance = stride;
+
+        //bool leftofmin;
+
+        double ycurr = yvals->at(curr);
+        double yprev = yvals->at(prev);
+        double ynext = yvals->at(next);
+
+        int p;
+
+        if (ycurr - ynext > 0)
+        {
+            //leftofmin = true;
+            p = 1;
+        }
+        else 
+        {
+            //leftofmin = false;
+            p = -1;
+        }
+
+        
+        while (distance > adj)
+        {
+            distance = round(distance / 2.0);
+            
+            next = round(curr + p*distance);
+
+            ycurr = yvals->at(curr);
+            ynext = yvals->at(next);
+            
+            if (ycurr - ynext > 0)
+            {
+                p = 1;
+            }
+            else
+            {
+                p = -1;
+            }
+
+            curr = next;
+        }
+
+        slips->push_back(curr);
+	}
+    }
     // method II find slipping rebion by difference tolerance, then find 
     // slipping points by lope, use this for relaxation
-    else if (mode == 2)
+    else if (mode == 3)
     {
         vector<double>::iterator maxel;
         maxel = max_element(yvals->begin(), yvals->end());

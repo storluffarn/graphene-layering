@@ -287,8 +287,8 @@ int main()
 	    
 	    	// this rn business is fooken ugly...	
 	    	//halfintervals(adj, end, stride, afm.gettimes(),afm.getfrics(), &slips);
-	    	halfintervals(1, adj, end, stride,round(pauseat*ttoa/stride), afm.getrntimes(),afm.getrnfrics(), &slips);
-	    	//halfintervals(2, adj, end, stride,round(pauseat*ttoa/stride), afm.getrntimes(),afm.getrnfrics(), &slips);
+	    	halfintervals(2, adj, end, stride,round(pauseat*ttoa/stride), afm.getrntimes(),afm.getrnfrics(), &slips);
+	    	//halfintervals(3, adj, end, stride,round(pauseat*ttoa/stride), afm.getrntimes(),afm.getrnfrics(), &slips);
 
 	    	//for (auto &el : slips)
 	    	//{
@@ -380,10 +380,12 @@ int main()
 
     for (auto& vec : publicslips)
     {
-        for (auto& el : vec)
+        for (uint k = 0; k < vec.size(); k++)
         {
             //fspos << publictimes[k] << "," << publicslips[k] << endl;
-            fspos << el << ",";
+            fspos << vec[k];
+            if (k < vec.size() - 1)
+                fspos << "," ;
         }
         fspos << endl;
     }
@@ -405,7 +407,7 @@ int main()
 //	for (auto &el : jennies)
 //		jstream << el.first << "," << el.second << endl;
 //	jstream.close();
-}
+} 
 
 
 

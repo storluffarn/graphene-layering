@@ -20,7 +20,8 @@ traw = np.loadtxt(open("time.csv", "rb"), delimiter=",", skiprows=1)
 xraw = np.loadtxt(open("xout.csv", "rb"), delimiter=",", skiprows=1)
 qraw = np.loadtxt(open("qout.csv", "rb"), delimiter=",", skiprows=1)
 fraw = np.loadtxt(open("tomout.csv", "rb"), delimiter=",", skiprows=1)
-sraw = np.loadtxt(open("slips.csv", "rb"), delimiter=",", skiprows=1)
+#sraw = np.loadtxt(open("slips.csv", "rb"), delimiter=",", skiprows=0)
+sraw = np.loadtxt(open("slipsdetailed.csv", "rb"), delimiter=",", skiprows=1)
 avgraw = np.loadtxt(open("avgs.csv", "rb"), delimiter=",", skiprows=1)
 #sangraw = np.loadtxt(open("sangslips.csv", "rb"), delimiter=",", skiprows=0)
 #
@@ -44,8 +45,10 @@ avgst  = nscale * avgraw[:,0]
 #sangx = nscale * sangraw[:,0]
 #sangy = nscale * sangraw[:,1]
 #xaccdata = xraw[:,2]
-slipst = nscale * sraw[:,0]
-slipsf = nscale * sraw[:,1]
+#slipst = nscale * sraw[:,0]
+#slipsf = nscale * sraw[:,1]
+slipst = nscale * sraw[0::8]
+slipsf = nscale * sraw[1::8]
 #
 #print (sraw)
 #print (len(sraw))
