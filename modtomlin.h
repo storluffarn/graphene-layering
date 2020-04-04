@@ -221,11 +221,11 @@ class tomlin
 	double getrnqvel(double t) {return lessnoiseqvel[t];}
 	double getrnqacc(double t) {return lessnoiseqacc[t];}
 	double getrnsuppos(double t) {return lessnoisesuppos[t];}
-
 	vector <double>* getposs() {return &x.poss;}
 	vector <double>* getfrics() {return &frics;}
 	vector <double>* gettimes() {return &times;}
 	vector <double>* getrnfrics() {return &lessnoisef;}
+	vector <double>* getrnqposs() {return &lessnoiseqpos;}
 	vector <double>* getrntimes() {return &lessnoiset;}
 	vector <double>* getrnsupposs() {return &lessnoisesuppos;}
 
@@ -386,7 +386,8 @@ void tomlin::writedata()
 		avgstream << "time, avged friction " << endl;
 		uint size = lessnoisef.size();
 		for (uint k = 0; k < size; k++)
-			avgstream << setprecision(16) << lessnoiset[k] << "," << lessnoisef[k] << "," << lessnoisesuppos[k] << endl;
+			avgstream << setprecision(16) << lessnoiset[k] << "," << lessnoisef[k] << "," << lessnoisesuppos[k] 
+    << "," << lessnoiseqpos[k] << endl;
 	avgstream.close();
 	
 	pstream.open(pfile);
@@ -592,6 +593,8 @@ void tomlin::noisered(uint halfmeansize, uint skip)
 
 	double sum = 0;
 	double avg = 0;
+	double qsum = 0;
+	double qavg = 0;
 
 	uint bgnel = 0;
 	uint midel = 0;
@@ -602,40 +605,44 @@ void tomlin::noisered(uint halfmeansize, uint skip)
 	
 	lessnoiset.reserve(ceil(tsteps/skip));
 	lessnoisef.reserve(ceil(tsteps/skip));
-	lessnoisexpos.reserve(ceil(tsteps/skip));
-	lessnoisexvel.reserve(ceil(tsteps/skip));
-	lessnoisexacc.reserve(ceil(tsteps/skip));
+	//lessnoisexpos.reserve(ceil(tsteps/skip));
+	//lessnoisexvel.reserve(ceil(tsteps/skip));
+	//lessnoisexacc.reserve(ceil(tsteps/skip));
 	lessnoiseqpos.reserve(ceil(tsteps/skip));
-	lessnoiseqvel.reserve(ceil(tsteps/skip));
-	lessnoiseqacc.reserve(ceil(tsteps/skip));
+	//lessnoiseqvel.reserve(ceil(tsteps/skip));
+	//lessnoiseqacc.reserve(ceil(tsteps/skip));
 	lessnoisesuppos.reserve(ceil(tsteps/skip));
 
 	for (uint l = 0; l < its; l++)		
 	{
 		sum += frics[endel];
+		qsum += q.poss[endel];
 		endel += skip;
 	}
 	
 	midel = endel;
 	sum += frics[endel];
+	qsum += q.poss[endel];
 	endel += skip;
 	
 	for (uint l = 0; l < its; l++)
 	{
 		sum += frics[endel];
+		qsum += q.poss[endel];
 		endel += skip;
 	}
 		
 	avg = rmeansize * sum;
+	qavg = rmeansize * qsum;
 
 	lessnoiset.push_back(times[midel]);
     lessnoisef.push_back(avg);
-	lessnoisexpos.push_back(times[midel]);
-	lessnoisexvel.push_back(times[midel]);
-	lessnoisexacc.push_back(times[midel]);
-	lessnoiseqpos.push_back(times[midel]);
-	lessnoiseqvel.push_back(times[midel]);
-	lessnoiseqacc.push_back(times[midel]);
+	//lessnoisexpos.push_back(times[midel]);
+	//lessnoisexvel.push_back(times[midel]);
+	//lessnoisexacc.push_back(times[midel]);
+	lessnoiseqpos.push_back(qavg);
+	//lessnoiseqvel.push_back(times[midel]);
+	//lessnoiseqacc.push_back(times[midel]);
 	lessnoisesuppos.push_back(poss[midel]);
 
 	// calculating rest of means
@@ -643,21 +650,23 @@ void tomlin::noisered(uint halfmeansize, uint skip)
 	while (endel < tsteps)
 	{
 		avg -= rmeansize*frics[bgnel];
+		qavg -= rmeansize*q.poss[bgnel];
 		bgnel += skip;
 		
 		midel += skip;
 		
 		avg += rmeansize*frics[endel];
+		qavg += rmeansize*q.poss[endel];
 		endel += skip;
 		
 		lessnoiset.push_back(times[midel]);
 		lessnoisef.push_back(avg);
-	    lessnoisexpos.push_back(x.poss[midel]);
-    	lessnoisexvel.push_back(x.vels[midel]);
-    	lessnoisexacc.push_back(x.accs[midel]);
-    	lessnoiseqpos.push_back(q.poss[midel]);
-    	lessnoiseqvel.push_back(q.vels[midel]);
-    	lessnoiseqacc.push_back(q.accs[midel]);
+	    //lessnoisexpos.push_back(x.poss[midel]);
+    	//lessnoisexvel.push_back(x.vels[midel]);
+    	//lessnoisexacc.push_back(x.accs[midel]);
+    	lessnoiseqpos.push_back(qavg);
+    	//lessnoiseqvel.push_back(q.vels[midel]);
+    	//lessnoiseqacc.push_back(q.accs[midel]);
 		lessnoisesuppos.push_back(poss[midel]);
 	}
 }

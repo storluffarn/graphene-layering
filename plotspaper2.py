@@ -20,8 +20,10 @@ traw = np.loadtxt(open("time.csv", "rb"), delimiter=",", skiprows=1)
 xraw = np.loadtxt(open("xout.csv", "rb"), delimiter=",", skiprows=1)
 qraw = np.loadtxt(open("qout.csv", "rb"), delimiter=",", skiprows=1)
 fraw = np.loadtxt(open("tomout.csv", "rb"), delimiter=",", skiprows=1)
-#sraw = np.loadtxt(open("slips.csv", "rb"), delimiter=",", skiprows=0)
-sraw = np.loadtxt(open("slipsdetailed.csv", "rb"), delimiter=",", skiprows=1)
+sraw = np.loadtxt(open("slips.csv", "rb"), delimiter=",", skiprows=0)
+sfraw = np.loadtxt(open("slipsf.csv", "rb"), delimiter=",", skiprows=0)
+sqraw = np.loadtxt(open("slipsq.csv", "rb"), delimiter=",", skiprows=0)
+#sraw = np.loadtxt(open("slipsdetailed.csv", "rb"), delimiter=",", skiprows=1)
 avgraw = np.loadtxt(open("avgs.csv", "rb"), delimiter=",", skiprows=1)
 #sangraw = np.loadtxt(open("sangslips.csv", "rb"), delimiter=",", skiprows=0)
 #
@@ -42,13 +44,17 @@ supdata = nscale * traw[:,1]
 #kindata = fraw[:,0]
 avgs  = nscale * avgraw[:,1]
 avgst  = nscale * avgraw[:,0]
+qavgs  = nscale * avgraw[:,3]
 #sangx = nscale * sangraw[:,0]
 #sangy = nscale * sangraw[:,1]
 #xaccdata = xraw[:,2]
-#slipst = nscale * sraw[:,0]
-#slipsf = nscale * sraw[:,1]
-slipst = nscale * sraw[0::8]
-slipsf = nscale * sraw[1::8]
+slipst = nscale * sraw
+slipsft = nscale * sfraw[:,0]
+slipsff = nscale * sfraw[:,1]
+slipsqt = nscale * sqraw[:,0]
+slipsqq = nscale * sqraw[:,1]
+#slipst = nscale * sraw[0::8]
+#slipsf = nscale * sraw[1::8]
 #
 #print (sraw)
 #print (len(sraw))
@@ -166,14 +172,23 @@ fig3.savefig("plots/plot_f.png")
 
 fig6, ax = plt.subplots()
 ax.plot(tdata,fdata)
-ax.plot(slipst,slipsf,'or')
-ax.set(xlabel='t (nm)', ylabel='x (nm)')
+ax.plot(slipsft,slipsff,'or')
 #ax.xaxis.set_major_locator(ticker.MultipleLocator(1.0))
 #ax.xaxis.set_minor_locator(ticker.MultipleLocator(0.25))
 #ax.xaxis.grid(True, which='minor',linestyle='dotted')
 #ax.yaxis.grid(True, linestyle='dotted')
 ax.set(xlabel='t (nm)', ylabel='F (nN)')
 fig6.savefig("plots/plot_fs.png")
+#
+fig6b, ax = plt.subplots()
+ax.plot(tdata,qdata)
+ax.plot(slipsqt,slipsqq,'or')
+#ax.xaxis.set_major_locator(ticker.MultipleLocator(1.0))
+#ax.xaxis.set_minor_locator(ticker.MultipleLocator(0.25))
+#ax.xaxis.grid(True, which='minor',linestyle='dotted')
+#ax.yaxis.grid(True, linestyle='dotted')
+ax.set(xlabel='t (nm)', ylabel='q (nm)')
+fig6b.savefig("plots/plot_qs.png")
 #
 fig7, ax = plt.subplots()
 ax.plot(tdata,fdata)
@@ -186,11 +201,21 @@ ax.set(xlabel='t (nm)', ylabel='x (nm)')
 #ax.set(xlabel='t (nm)', ylabel='F (nN)')
 fig7.savefig("plots/plot_favg.png")
 
-#fig8, ax = plt.subplots()
-#nbins = 250
-#n,f1,patches = ax.hist(slipst,nbins,edgecolor='black')
-#ax.set(xlabel='t (ns)', ylabel='count')
-#fig8.savefig("plots/slip_hist.png")
+fig7b, ax = plt.subplots()
+ax.plot(tdata,qdata)
+ax.plot(avgst,qavgs)
+#ax.xaxis.set_major_locator(ticker.MultipleLocator(1.0))
+#ax.xaxis.set_minor_locator(ticker.MultipleLocator(0.25))
+#ax.xaxis.grid(True, which='minor',linestyle='dotted')
+#ax.yaxis.grid(True, linestyle='dotted')
+ax.set(xlabel='t (nm)', ylabel='q (nN)')
+fig7b.savefig("plots/plot_qavg.png")
+
+fig8, ax = plt.subplots()
+nbins = 250
+n,f1,patches = ax.hist(slipst,nbins,edgecolor='black')
+ax.set(xlabel='t (ns)', ylabel='count')
+fig8.savefig("plots/slip_hist.png")
 
 #fig9, ax = plt.subplots()
 #
