@@ -184,7 +184,7 @@ int main()
 	
 	double tmp = 0.5;	// 0.5 gives reliable timestep dep. 1.0 should be ok
 	double tstep = tmp * 3e-14;	
-	uint tsteps = 1.0/tmp * 20e5;	// has to be even beucasue lazyness
+	uint tsteps = 1.0/tmp * 4e5;	// has to be even beucasue lazyness
 	
 	string tfile = "time.csv";
 	string xfile = "xout.csv";
@@ -220,7 +220,7 @@ int main()
 	uint end = round(tsteps/skip)-skip;		// this is a bit risky, size should be constant over many runs though...
 	
     uint pauseat = 20;
-	uint runs = 100;
+	uint runs = 1;
 		
     //chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
     
@@ -231,16 +231,16 @@ int main()
     vector <double> publicfrics;
     vector <double> publicqposs;
     
-    #pragma omp parallel
-    {
+    //#pragma omp parallel
+    //{
 	    //vector <vector <double>> privateslips;
         vector <double> privateslips;
-	    //vector <double> privatefslips;
-	    //vector <double> privatefrics;
-	    //vector <double> privateqslips;
-	    //vector <double> privateqposs;
+	    vector <double> privatefslips;
+	    vector <double> privatefrics;
+	    vector <double> privateqslips;
+	    vector <double> privateqposs;
         
-        #pragma omp for nowait
+        //#pragma omp for nowait
 	    for ( uint l = 0; l < runs; l++)
 	    {	
 	        vector <uint> slips;
@@ -335,16 +335,16 @@ int main()
 	    	//	cout << "finished " << l+1 << " out of " << runs <<  " iterations" << endl;
 	    	//}
             
-		    //for (auto& el : fslips)
-            //{    
-            //    privatefslips.push_back(afm.getrntime(el));
-            //    privatefrics.push_back(afm.getrnfric(el));
-            //}
-		    //for (auto& el : qslips)
-            //{    
-            //    privateqslips.push_back(afm.getrntime(el));
-            //    privateqposs.push_back(afm.getrnqpos(el));
-            //}
+		    for (auto& el : fslips)
+            {    
+                privatefslips.push_back(afm.getrntime(el));
+                privatefrics.push_back(afm.getrnfric(el));
+            }
+		    for (auto& el : qslips)
+            {    
+                privateqslips.push_back(afm.getrntime(el));
+                privateqposs.push_back(afm.getrnqpos(el));
+            }
 		    for (auto& el : fslips)
             {    
                 privateslips.push_back(afm.getrntime(el));
@@ -353,15 +353,15 @@ int main()
             //privateslips.push_back(slipdata);
             //privateslips.push_back(sliptimes);
 	    }
-        #pragma omp critical
+        //#pragma omp critical
         //publicslips.insert(publicslips.end(), privateslips.begin(), privateslips.end());
         publicslips.insert(publicslips.end(), privateslips.begin(), privateslips.end());
-        //publicfslips.insert(publicfslips.end(), privatefslips.begin(), privatefslips.end());
-        //publicqslips.insert(publicqslips.end(), privateqslips.begin(), privateqslips.end());
-        //publicfrics.insert(publicfrics.end(), privatefrics.begin(), privatefrics.end());
-        //publicqposs.insert(publicqposs.end(), privateqposs.begin(), privateqposs.end());
+        publicfslips.insert(publicfslips.end(), privatefslips.begin(), privatefslips.end());
+        publicqslips.insert(publicqslips.end(), privateqslips.begin(), privateqslips.end());
+        publicfrics.insert(publicfrics.end(), privatefrics.begin(), privatefrics.end());
+        publicqposs.insert(publicqposs.end(), privateqposs.begin(), privateqposs.end());
 
-    } 
+    //} 
 
 	//chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
 
@@ -391,24 +391,24 @@ int main()
         }
         fsslips.close();
         
-        //ofstream fsfslips;
-        //fsfslips.open("slipsf.csv");
-        //
-        //for (uint k = 0; k < publicfslips.size(); k++)
-        //{ 
-        //    //fsslips << el << endl;
-        //    fsfslips << publicfslips[k] << "," << publicfrics[k] << endl;
-        //}
-        //fsfslips.close();
+        ofstream fsfslips;
+        fsfslips.open("slipsf.csv");
+        
+        for (uint k = 0; k < publicfslips.size(); k++)
+        { 
+            //fsslips << el << endl;
+            fsfslips << publicfslips[k] << "," << publicfrics[k] << endl;
+        }
+        fsfslips.close();
       
-        //ofstream fsqslips;
-        //fsqslips.open("slipsq.csv");
-        //
-        //for (uint k = 0; k < publicqslips.size(); k++)
-        //{ 
-        //    fsqslips << publicqslips[k] << "," << publicqposs[k] << endl;
-        //}
-	    //fsqslips.close();
+        ofstream fsqslips;
+        fsqslips.open("slipsq.csv");
+        
+        for (uint k = 0; k < publicqslips.size(); k++)
+        { 
+            fsqslips << publicqslips[k] << "," << publicqposs[k] << endl;
+        }
+	    fsqslips.close();
 
 //	double ending = 2e-9;
 //	uint diststeps = 100;
