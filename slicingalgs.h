@@ -112,6 +112,7 @@ static const double zero = 1e-11;
             }
         }
     }
+    // method II find slipping rebion by difference tolerance, then find 
     else if (mode == 2)
     {
         uint curr = 0;
@@ -201,7 +202,6 @@ static const double zero = 1e-11;
             slips->push_back(curr);
         }
     }
-    // method II find slipping rebion by difference tolerance, then find 
     // slipping points by slope, use this for relaxation, needs small stride
     else if (mode == 3)
     {
@@ -215,7 +215,7 @@ static const double zero = 1e-11;
         double max = *maxel;
         double low = 0.96*max;
         double slipbound = max - low;
-        double slopetol = -2.5;
+        double slopetol = -1.25;
 
         //slipsish.push_back(pauseat);    
 
@@ -240,9 +240,10 @@ static const double zero = 1e-11;
                 y2 = fvals->at(curr);
                 
                 double slope = (y2 - y1) / (x2 - x1);
-                double tmp = (fvals->at(next) - y2) / (tvals->at(next) - x2);
 
-                if (slope > slopetol)
+                //cout << "xslip " << x1 << " " << y1 << " "  << slope << endl;
+
+                if (slope < slopetol)
                 {
                     fslips->push_back(curr);
                 }
@@ -251,60 +252,66 @@ static const double zero = 1e-11;
             curr = next;
             next = curr + stride;
         }
-
-        // for q pos
-
-        curr = 0;
-        next = stride;
-        maxel = max_element(qvals->begin(), qvals->end());
         
-        max = *maxel;
-        low = 0.925*max;
-        slipbound = max - low;
-        slopetol = -1.0;
-        double slopetol2 = 1.0;
+        //fslips->push_back(curr); // this looks like an ugly hack, but it's really physically motivated -- sort of not a slip, but reports last minimum
 
-        //slipsish.push_back(pauseat);    
+        //// for q pos
+
+        //curr = 0;
+        //stride = round(0.5*stride);
+        //next = stride;
+        //maxel = max_element(qvals->begin(), qvals->end());
+        //
+        //max = *maxel;
+        //low = 0.95*max;
+        //slipbound = max - low;
+        //slopetol = -1.0;
+        //double slopetol2 = 2.0;
+
+        ////slipsish.push_back(pauseat);    
+        //
+        //while (next < end)
+        //{
+        //    //uint next = start + round(adj+exp(logstep*loops));
+        //    //cout << curr << endl;
+        //    double y1 = qvals->at(curr);
+        //    double y2 = qvals->at(next);
+        //    double x1;          
+        //    double x2;
+
+        //    double diff = abs(y1 - y2);
+
+        //    if (diff > slipbound && curr > stride)
+        //    {
+        //        uint near = curr - round(1.0*stride);
+        //        
+        //        x1 = tvals->at(near);
+        //        x2 = tvals->at(curr);
+        //        y1 = qvals->at(near);
+        //        y2 = qvals->at(curr);
+        //        
+        //        double slope = abs((y2 - y1) / (x2 - x1));
+        //        double tmp = (qvals->at(next) - y2) / (tvals->at(next) - x2);
+        //        //cout << "qslip "  << x1 << " "  << slope << endl;
+
+        //        if (slope > slopetol2)
+        //        {
+        //            qslips->push_back(curr);
+        //        }
+        //    }
+
+        //    curr = next;
+        //    next = curr + stride;
+        //}
         
-        while (next < end)
-        {
-            //uint next = start + round(adj+exp(logstep*loops));
-            //cout << curr << endl;
-            double y1 = qvals->at(curr);
-            double y2 = qvals->at(next);
-            double x1;          
-            double x2;
+        //qslips->push_back(curr); 
 
-            double diff = abs(y1 - y2);
-
-            if (diff > slipbound && curr > stride)
-            {
-                uint near = curr - round(0.75*stride);
-                
-                x1 = tvals->at(near);
-                x2 = tvals->at(curr);
-                y1 = qvals->at(near);
-                y2 = qvals->at(curr);
-                
-                double slope = abs((y2 - y1) / (x2 - x1));
-                double tmp = (qvals->at(next) - y2) / (tvals->at(next) - x2);
-
-                if (slope < slopetol2)
-                {
-                    qslips->push_back(curr);
-                }
-            }
-
-            curr = next;
-            next = curr + stride;
-        }
-        
         vector <uint> outs = *fslips;
         vector <uint> tmp = *qslips;        // this is just to collect the f and q slips, later we will eliminate dublicates
         
-        outs.insert(outs.end(),tmp.begin(),tmp.end());
-        
-        sort(outs.begin(),outs.end());
+        // UNCOMMENT THESE TO ADD Q SLIPS
+        //outs.insert(outs.end(),tmp.begin(),tmp.end());
+        //sort(outs.begin(),outs.end());
         
         //for (auto& el : outs)
         //    cout << el << ",";

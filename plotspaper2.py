@@ -19,7 +19,7 @@ alltime = steps*tstep
 
 traw = np.loadtxt(open("time.csv", "rb"), delimiter=",", skiprows=1)
 #xraw = np.loadtxt(open("xout.csv", "rb"), delimiter=",", skiprows=1)
-qraw = np.loadtxt(open("qout.csv", "rb"), delimiter=",", skiprows=1)
+#qraw = np.loadtxt(open("qout.csv", "rb"), delimiter=",", skiprows=1)
 fraw = np.loadtxt(open("tomout.csv", "rb"), delimiter=",", skiprows=1)
 sraw = np.loadtxt(open("slips.csv", "rb"), delimiter=",", skiprows=0)
 sfraw = np.loadtxt(open("slipsf.csv", "rb"), delimiter=",", skiprows=0)
@@ -39,21 +39,21 @@ nscale = 1.0e9  # WARNING this is *only* for plotting, danger!
 tdata = nscale * traw[:,0]
 #sdata = nscale * traw[:,1]
 #xdata = nscale * xraw[:,0]
-qdata = nscale * qraw[:,0]
+#qdata = nscale * qraw[:,0]
 fdata = nscale * fraw[:,2]
 #supdata = nscale * traw[:,1]
 #kindata = fraw[:,0]
 avgs  = nscale * avgraw[:,1]
 avgst  = nscale * avgraw[:,0]
-qavgs  = nscale * avgraw[:,3]
+#qavgs  = nscale * avgraw[:,3]
 #sangx = nscale * sangraw[:,0]
 #sangy = nscale * sangraw[:,1]
 #xaccdata = xraw[:,2]
 slipst = nscale * sraw
 slipsft = nscale * sfraw[:,0]
 slipsff = nscale * sfraw[:,1]
-slipsqt = nscale * sqraw[:,0]
-slipsqq = nscale * sqraw[:,1]
+#slipsqt = nscale * sqraw[:,0]
+#slipsqq = nscale * sqraw[:,1]
 #slipst = nscale * sraw[0::8]
 #slipsf = nscale * sraw[1::8]
 
@@ -69,18 +69,15 @@ slipsqq = nscale * sqraw[:,1]
 ##print (len(sraw))
 #
 ### use this for slip pos dist
-##if len(sraw) == 0 :     # ugly errpr handling
-##    slipst = [0]
-##    slipsf = [0]
-##    slipspos = [0]
-##elif len(sraw) == 3 :   # even uglier, should be it rows = 1
-##    slipst = nscale * sraw[0]
-##    slipsf = nscale * sraw[1]
-##    slipspos = nscale * sraw[2]
-##else :
-##    slipst = nscale * sraw[:,0]
-##    slipsf = nscale * sraw[:,1]
-##    slipspos = nscale * sraw[:,2]
+#if len(qraw) == 0 :     # ugly errpr handling
+#    slipsqt = [0]
+#    slipsqq = [0]
+#elif len(qraw) == 3 :   # even uglier, should be it rows = 1
+#    slipsqt = nscale * qraw[0]
+#    slipsqq = nscale * qraw[1]
+#else :
+#    slipsqt = nscale * qraw[:,0]
+#    slipsqq = nscale * qraw[:,1]
 #
 ## use this for relax time dist dist
 ##if len(sraw) == 0 :     # ugly errpr handling
@@ -267,18 +264,18 @@ slipsqq = nscale * sqraw[:,1]
 
 fig11, (ax1,ax2) = plt.subplots(nrows = 2, sharex = True)
 
-f12, = ax1.plot(tdata,qdata, label = "Signal")
-f22, = ax1.plot(avgst,qavgs, label = "Noise reduction")
-ax1.set(ylabel='q (nm)')
-ax1.xaxis.set_major_locator(ticker.MultipleLocator(5.0))
-ax1.xaxis.set_minor_locator(ticker.MultipleLocator(2.5))
+#f12, = ax1.plot(tdata,qdata, label = "Signal")
+#f22, = ax1.plot(avgst,qavgs, label = "Noise reduction")
+#ax1.set(ylabel='q (nm)')
+#ax1.xaxis.set_major_locator(ticker.MultipleLocator(5.0))
+#ax1.xaxis.set_minor_locator(ticker.MultipleLocator(2.5))
 #ax1.xaxis.grid(True, which='minor', linestyle='dotted')
 #ax1.xaxis.grid(True, which='major', linestyle='dotted')
 #ax1.yaxis.grid(True, which='major', linestyle='dotted')
-ax1.legend(loc='upper right')
+#ax1.legend(loc='upper right')
 
-for slip in slipst :
-    ax1.axvline(x=slip, color = 'gray', linestyle = 'dotted')
+#for slip in slipst :
+#    ax1.axvline(x=slip, color = 'gray', linestyle = 'dotted')
 
 f21, = ax2.plot(tdata,fdata, label = "Signal")
 f22, = ax2.plot(avgst,avgs, label = "Noise reduction")
@@ -297,4 +294,5 @@ plt.subplots_adjust(hspace=0)
 
 timestamp = time.strftime("%Y%m%d-%H%M%S")
 
+#fig11.savefig("plots/fq_slips")
 fig11.savefig("plots/fq_slips{}".format(timestamp))

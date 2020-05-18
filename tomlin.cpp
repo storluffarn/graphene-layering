@@ -99,7 +99,7 @@ double tomlin::latfric()
 }
 
 void tomlin::rk4()
-{
+{   
 	struct vparticle {double pos; double vel; double acc;};
 	struct k {double vel; double acc;};
 	vparticle vp;
@@ -162,7 +162,7 @@ int main()
 	// simulation parameters
 	int duration = 20000;
 
-	ofstream fstomlin; fstomlin.open("tomlin.txt");
+	ofstream fstomlin; fstomlin.open("tomlin.csv");
 
 	for ( int k = 0; k < duration; k++)
 	{
