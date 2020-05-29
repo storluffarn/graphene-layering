@@ -253,65 +253,65 @@ static const double zero = 1e-11;
             next = curr + stride;
         }
         
-        //fslips->push_back(curr); // this looks like an ugly hack, but it's really physically motivated -- sort of not a slip, but reports last minimum
+        fslips->push_back(curr); // this looks like an ugly hack, but it's really physically motivated -- sort of not a slip, but reports last minimum
 
-        //// for q pos
+        // for q pos
 
-        //curr = 0;
-        //stride = round(0.5*stride);
-        //next = stride;
-        //maxel = max_element(qvals->begin(), qvals->end());
-        //
-        //max = *maxel;
-        //low = 0.95*max;
-        //slipbound = max - low;
-        //slopetol = -1.0;
-        //double slopetol2 = 2.0;
-
-        ////slipsish.push_back(pauseat);    
-        //
-        //while (next < end)
-        //{
-        //    //uint next = start + round(adj+exp(logstep*loops));
-        //    //cout << curr << endl;
-        //    double y1 = qvals->at(curr);
-        //    double y2 = qvals->at(next);
-        //    double x1;          
-        //    double x2;
-
-        //    double diff = abs(y1 - y2);
-
-        //    if (diff > slipbound && curr > stride)
-        //    {
-        //        uint near = curr - round(1.0*stride);
-        //        
-        //        x1 = tvals->at(near);
-        //        x2 = tvals->at(curr);
-        //        y1 = qvals->at(near);
-        //        y2 = qvals->at(curr);
-        //        
-        //        double slope = abs((y2 - y1) / (x2 - x1));
-        //        double tmp = (qvals->at(next) - y2) / (tvals->at(next) - x2);
-        //        //cout << "qslip "  << x1 << " "  << slope << endl;
-
-        //        if (slope > slopetol2)
-        //        {
-        //            qslips->push_back(curr);
-        //        }
-        //    }
-
-        //    curr = next;
-        //    next = curr + stride;
-        //}
+        curr = 0;
+        stride = round(0.5*stride);
+        next = stride;
+        maxel = max_element(qvals->begin(), qvals->end());
         
-        //qslips->push_back(curr); 
+        max = *maxel;
+        low = 0.95*max;
+        slipbound = max - low;
+        slopetol = -1.0;
+        double slopetol2 = 2.0;
+
+        //slipsish.push_back(pauseat);    
+        
+        while (next < end)
+        {
+            //uint next = start + round(adj+exp(logstep*loops));
+            //cout << curr << endl;
+            double y1 = qvals->at(curr);
+            double y2 = qvals->at(next);
+            double x1;          
+            double x2;
+
+            double diff = abs(y1 - y2);
+
+            if (diff > slipbound && curr > stride)
+            {
+                uint near = curr - round(1.0*stride);
+                
+                x1 = tvals->at(near);
+                x2 = tvals->at(curr);
+                y1 = qvals->at(near);
+                y2 = qvals->at(curr);
+                
+                double slope = abs((y2 - y1) / (x2 - x1));
+                double tmp = (qvals->at(next) - y2) / (tvals->at(next) - x2);
+                //cout << "qslip "  << x1 << " "  << slope << endl;
+
+                if (slope > slopetol2)
+                {
+                    qslips->push_back(curr);
+                }
+            }
+
+            curr = next;
+            next = curr + stride;
+        }
+        
+        qslips->push_back(curr); 
 
         vector <uint> outs = *fslips;
         vector <uint> tmp = *qslips;        // this is just to collect the f and q slips, later we will eliminate dublicates
         
         // UNCOMMENT THESE TO ADD Q SLIPS
-        //outs.insert(outs.end(),tmp.begin(),tmp.end());
-        //sort(outs.begin(),outs.end());
+        outs.insert(outs.end(),tmp.begin(),tmp.end());
+        sort(outs.begin(),outs.end());
         
         //for (auto& el : outs)
         //    cout << el << ",";

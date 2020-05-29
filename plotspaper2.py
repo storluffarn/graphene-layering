@@ -17,10 +17,10 @@ tstep = modif * 3e-14
 steps = 1.0/modif * 10.0e5	
 alltime = steps*tstep 
 
-traw = np.loadtxt(open("time.csv", "rb"), delimiter=",", skiprows=1)
-#xraw = np.loadtxt(open("xout.csv", "rb"), delimiter=",", skiprows=1)
-#qraw = np.loadtxt(open("qout.csv", "rb"), delimiter=",", skiprows=1)
-fraw = np.loadtxt(open("tomout.csv", "rb"), delimiter=",", skiprows=1)
+traw = np.loadtxt(open("./data/retrace/time.csv", "rb"), delimiter=",", skiprows=1)
+xraw = np.loadtxt(open("./data/retrace/xout.csv", "rb"), delimiter=",", skiprows=1)
+qraw = np.loadtxt(open("./data/retrace/qout.csv", "rb"), delimiter=",", skiprows=1)
+fraw = np.loadtxt(open("./data/retrace/tomout.csv", "rb"), delimiter=",", skiprows=1)
 sraw = np.loadtxt(open("slips.csv", "rb"), delimiter=",", skiprows=0)
 sfraw = np.loadtxt(open("slipsf.csv", "rb"), delimiter=",", skiprows=0)
 sqraw = np.loadtxt(open("slipsq.csv", "rb"), delimiter=",", skiprows=0)
@@ -38,14 +38,14 @@ nscale = 1.0e9  # WARNING this is *only* for plotting, danger!
 
 tdata = nscale * traw[:,0]
 #sdata = nscale * traw[:,1]
-#xdata = nscale * xraw[:,0]
-#qdata = nscale * qraw[:,0]
+xdata = nscale * xraw[:,0]
+qdata = nscale * qraw[:,0]
 fdata = nscale * fraw[:,2]
-#supdata = nscale * traw[:,1]
+supdata = nscale * traw[:,1]
 #kindata = fraw[:,0]
 avgs  = nscale * avgraw[:,1]
 avgst  = nscale * avgraw[:,0]
-#qavgs  = nscale * avgraw[:,3]
+qavgs  = nscale * avgraw[:,3]
 #sangx = nscale * sangraw[:,0]
 #sangy = nscale * sangraw[:,1]
 #xaccdata = xraw[:,2]
@@ -69,15 +69,15 @@ slipsff = nscale * sfraw[:,1]
 ##print (len(sraw))
 #
 ### use this for slip pos dist
-#if len(qraw) == 0 :     # ugly errpr handling
-#    slipsqt = [0]
-#    slipsqq = [0]
-#elif len(qraw) == 3 :   # even uglier, should be it rows = 1
-#    slipsqt = nscale * qraw[0]
-#    slipsqq = nscale * qraw[1]
-#else :
-#    slipsqt = nscale * qraw[:,0]
-#    slipsqq = nscale * qraw[:,1]
+if len(qraw) == 0 :     # ugly errpr handling
+    slipsqt = [0]
+    slipsqq = [0]
+elif len(qraw) == 3 :   # even uglier, should be it rows = 1
+    slipsqt = nscale * qraw[0]
+    slipsqq = nscale * qraw[1]
+else :
+    slipsqt = nscale * qraw[:,0]
+    slipsqq = nscale * qraw[:,1]
 #
 ## use this for relax time dist dist
 ##if len(sraw) == 0 :     # ugly errpr handling
@@ -87,94 +87,101 @@ slipsff = nscale * sfraw[:,1]
 ##else :
 ##    slipst = nscale * sraw
 #
+### support movement
+#
 #fig0, ax = plt.subplots()
 #ax.plot(tdata,sdata)
 #fig0.savefig("plots/plot_vt.png")
 #
-#fig1, ax = plt.subplots()
-#ax.plot(tdata,xdata)
-#ax.set(xlabel='t (nm)', ylabel='x (nm)')
-##ax.xaxis.set_major_locator(ticker.MultipleLocator(1.0))
-##ax.xaxis.set_minor_locator(ticker.MultipleLocator(0.25))
-##ax.xaxis.grid(True, which='minor',linestyle='dotted')
-##ax.xaxis.grid(True, which='major',linestyle='dotted')
-##ax.yaxis.grid(True, linestyle='dotted')
-#fig1.savefig("plots/plot_x.png")
+### standard plots
 #
-#fig2, ax = plt.subplots()
+fig1, ax = plt.subplots()
+ax.plot(tdata,xdata)
+ax.set(xlabel='t (nm)', ylabel='x (nm)')
+#ax.xaxis.set_major_locator(ticker.MultipleLocator(1.0))
+#ax.xaxis.set_minor_locator(ticker.MultipleLocator(0.25))
+#ax.xaxis.grid(True, which='minor',linestyle='dotted')
+#ax.xaxis.grid(True, which='major',linestyle='dotted')
+#ax.yaxis.grid(True, linestyle='dotted')
+fig1.savefig("plots/plot_x.png")
+
+fig2, ax = plt.subplots()
 #ax.plot(tdata,qdata)
-#ax.set(xlabel='t (nm)', ylabel='q (nm)')
-#fig2.savefig("plots/plot_q.png")
-#
-#fig3, ax = plt.subplots()
+ax.plot(supdata,qdata)
+ax.set(xlabel='t (nm)', ylabel='q (nm)')
+fig2.savefig("plots/plot_q.png")
+
+fig3, ax = plt.subplots()
 #ax.plot(tdata,fdata)
-##ax.plot(supdata,fdata)
-#ax.set(xlabel='t (nm)', ylabel='x (nm)')
-##ax.xaxis.set_major_locator(ticker.MultipleLocator(1.0))
-##ax.xaxis.set_minor_locator(ticker.MultipleLocator(0.25))
-##ax.xaxis.grid(True, which='minor',linestyle='dotted')
-##ax.xaxis.grid(True, which='major',linestyle='dotted')
-##ax.yaxis.grid(True, linestyle='dotted')
-#ax.set(xlabel='t (nm)', ylabel='F (nN)')
-#fig3.savefig("plots/plot_f.png")
+ax.plot(supdata,fdata)
+ax.set(xlabel='t (nm)', ylabel='x (nm)')
+#ax.xaxis.set_major_locator(ticker.MultipleLocator(1.0))
+#ax.xaxis.set_minor_locator(ticker.MultipleLocator(0.25))
+#ax.xaxis.grid(True, which='minor',linestyle='dotted')
+#ax.xaxis.grid(True, which='major',linestyle='dotted')
+#ax.yaxis.grid(True, linestyle='dotted')
+ax.set(xlabel='t (nm)', ylabel='F (nN)')
+fig3.savefig("plots/plot_f.png")
 #
 ### for debugging
-##
-##fig4, ax = plt.subplots()
-##
-##nbins = 100
-##n,f1,patches = ax.hist(slipspos,nbins,edgecolor='black')
-##
-##fig4.savefig("plots/histogram.png")
-##
-### mean square displacement
-##
-##xdata /= nscale 
-##mean = 0
-##
-##for x in xdata :
-##    mean += x**2
-##
-##mean /= len(xdata)
-##
-##print("simulated msd: {}".format(mean))
-##
-### analytical
-##
-### for brownian motion
-##
-##diff = kb*T/(xmass*xdamp)
-##
-##msd = 2*diff*alltime
-##
-##c = 2*xdamp*kb*T/xmass
-##
-##msd2 = c/(2*xdamp)*(1-math.exp(-xdamp*alltime)**2)/xdamp**2 + c*alltime/xdamp**2 - c*(1-math.exp(-xdamp*alltime)) / xdamp**3
-##
-##print ("calculated msd: {}".format(msd))
-##print (msd2)
-##
-##fig5, ax = plt.subplots()
-##
-##nbins = 100
-##n,f1,patches = ax.hist(xaccdata,nbins,edgecolor='black')
-##
-##ax.set(xlabel='t (ns)', ylabel='acc (m/s^2)')
-##fig5.savefig("plots/plot_xacc.png")
-##
-##xaccstd = np.std(xaccdata)
-##
-##xaccstdtrue = np.sqrt(2*xmass*kb*T*xdamp/tstep)
-##
-##print ("std of acc: {}".format(xaccstd))
-##print ("true std of acc: {}".format(xaccstdtrue))
-##
-### for an harmonic oscilator
-##
-##kinmean = np.mean(kindata)
-##
-##print ('mean kinetic energy: {}'.format(kinmean))
-##print ('true mean kinetic energy: {}'.format(0.5*kb*T))
+#
+#fig4, ax = plt.subplots()
+#
+#nbins = 100
+#n,f1,patches = ax.hist(slipspos,nbins,edgecolor='black')
+#
+#fig4.savefig("plots/histogram.png")
+#
+## mean square displacement
+#
+#xdata /= nscale 
+#mean = 0
+#
+#for x in xdata :
+#    mean += x**2
+#
+#mean /= len(xdata)
+#
+#print("simulated msd: {}".format(mean))
+#
+## analytical
+#
+## for brownian motion
+#
+#diff = kb*T/(xmass*xdamp)
+#
+#msd = 2*diff*alltime
+#
+#c = 2*xdamp*kb*T/xmass
+#
+#msd2 = c/(2*xdamp)*(1-math.exp(-xdamp*alltime)**2)/xdamp**2 + c*alltime/xdamp**2 - c*(1-math.exp(-xdamp*alltime)) / xdamp**3
+#
+#print ("calculated msd: {}".format(msd))
+#print (msd2)
+#
+#fig5, ax = plt.subplots()
+#
+#nbins = 100
+#n,f1,patches = ax.hist(xaccdata,nbins,edgecolor='black')
+#
+#ax.set(xlabel='t (ns)', ylabel='acc (m/s^2)')
+#fig5.savefig("plots/plot_xacc.png")
+#
+#xaccstd = np.std(xaccdata)
+#
+#xaccstdtrue = np.sqrt(2*xmass*kb*T*xdamp/tstep)
+#
+#print ("std of acc: {}".format(xaccstd))
+#print ("true std of acc: {}".format(xaccstdtrue))
+#
+## for an harmonic oscilator
+#
+#kinmean = np.mean(kindata)
+#
+#print ('mean kinetic energy: {}'.format(kinmean))
+#print ('true mean kinetic energy: {}'.format(0.5*kb*T))
+#
+###
 #
 #fig6, ax = plt.subplots()
 #ax.plot(tdata,fdata)
@@ -261,38 +268,40 @@ slipsff = nscale * sfraw[:,1]
 #fig10, ax = plt.subplots()
 #ax.plot(sangx,sangy)
 #fig10.savefig("plots/sang.png")
-
-fig11, (ax1,ax2) = plt.subplots(nrows = 2, sharex = True)
-
+#
+### d-q with slips
+#
+#fig11, (ax1,ax2) = plt.subplots(nrows = 2, sharex = True)
+#
 #f12, = ax1.plot(tdata,qdata, label = "Signal")
 #f22, = ax1.plot(avgst,qavgs, label = "Noise reduction")
 #ax1.set(ylabel='q (nm)')
 #ax1.xaxis.set_major_locator(ticker.MultipleLocator(5.0))
 #ax1.xaxis.set_minor_locator(ticker.MultipleLocator(2.5))
-#ax1.xaxis.grid(True, which='minor', linestyle='dotted')
-#ax1.xaxis.grid(True, which='major', linestyle='dotted')
-#ax1.yaxis.grid(True, which='major', linestyle='dotted')
+##ax1.xaxis.grid(True, which='minor', linestyle='dotted')
+##ax1.xaxis.grid(True, which='major', linestyle='dotted')
+##ax1.yaxis.grid(True, which='major', linestyle='dotted')
 #ax1.legend(loc='upper right')
-
+#
 #for slip in slipst :
 #    ax1.axvline(x=slip, color = 'gray', linestyle = 'dotted')
-
-f21, = ax2.plot(tdata,fdata, label = "Signal")
-f22, = ax2.plot(avgst,avgs, label = "Noise reduction")
-ax2.set(xlabel='t (nm)', ylabel='F (nN)')
-ax2.xaxis.set_major_locator(ticker.MultipleLocator(5.0))
-ax2.xaxis.set_minor_locator(ticker.MultipleLocator(1.0))
-#ax2.xaxis.grid(True, which='minor', linestyle='dotted')
-#ax2.xaxis.grid(True, which='major', linestyle='dotted')
-#ax2.yaxis.grid(True, which='major', linestyle='dotted')
-ax2.legend(loc='upper right')
-
-for slip in slipst :
-    ax2.axvline(x=slip, color = 'gray', linestyle = 'dotted')
-
-plt.subplots_adjust(hspace=0)
-
-timestamp = time.strftime("%Y%m%d-%H%M%S")
-
-#fig11.savefig("plots/fq_slips")
-fig11.savefig("plots/fq_slips{}".format(timestamp))
+#
+#f21, = ax2.plot(tdata,fdata, label = "Signal")
+#f22, = ax2.plot(avgst,avgs, label = "Noise reduction")
+#ax2.set(xlabel='t (nm)', ylabel='F (nN)')
+#ax2.xaxis.set_major_locator(ticker.MultipleLocator(5.0))
+#ax2.xaxis.set_minor_locator(ticker.MultipleLocator(1.0))
+##ax2.xaxis.grid(True, which='minor', linestyle='dotted')
+##ax2.xaxis.grid(True, which='major', linestyle='dotted')
+##ax2.yaxis.grid(True, which='major', linestyle='dotted')
+#ax2.legend(loc='upper right')
+#
+#for slip in slipst :
+#    ax2.axvline(x=slip, color = 'gray', linestyle = 'dotted')
+#
+#plt.subplots_adjust(hspace=0)
+#
+#timestamp = time.strftime("%Y%m%d-%H%M%S")
+#
+##fig11.savefig("plots/fq_slips")
+#fig11.savefig("plots/fq_slips{}".format(timestamp))
