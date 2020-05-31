@@ -8,7 +8,7 @@ typedef unsigned int uint;
 static const double zero = 1e-11;
 
 // finding slipping points by inverval halfing
-        void halfintervals (uint mode, uint adj, uint end, uint stride, uint pauseat, vector <double>* tvals, vector <double>* qvals, vector <double>* fvals,  vector <uint>* fslips, vector <uint>* qslips, vector <uint>* slips)
+        void halfintervals (uint mode, uint adj, uint end, uint stride, uint pauseat, vector <double>* tvals, vector <double>* qvals, vector <double>* fvals,  vector <uint>* fslips, vector <uint>* qslips, vector <uint>* slips, vector <uint>* sliptos)
 {
 
     vector <uint> slipsish;
@@ -215,7 +215,7 @@ static const double zero = 1e-11;
         double max = *maxel;
         double low = 0.96*max;
         double slipbound = max - low;
-        double slopetol = -1.25;
+        double slopetol = -5.0;
 
         //slipsish.push_back(pauseat);    
 
@@ -232,20 +232,31 @@ static const double zero = 1e-11;
         
             if (diff > slipbound && curr > stride) // second conditions bypasses this check for first iteration to avoid overflow
             {
-                uint near = curr - round(0.75*stride);
+                uint near = curr + round(0.75*stride);
                 
-                x1 = tvals->at(near);
-                x2 = tvals->at(curr);
-                y1 = fvals->at(near);
-                y2 = fvals->at(curr);
+                x2 = tvals->at(near);
+                x1 = tvals->at(curr);
+                y2 = fvals->at(near);
+                y1 = fvals->at(curr);
                 
                 double slope = (y2 - y1) / (x2 - x1);
 
-                //cout << "xslip " << x1 << " " << y1 << " "  << slope << endl;
+                cout << "foundx " << x1 << " " << y1 << " "  << slope << endl;
 
                 if (slope < slopetol)
                 {
                     fslips->push_back(curr);
+                    //uint to = curr + 10*stride;
+                    //cout << "pushed " << x1 << " with " << y1 << endl;
+                    //if (to < end) // this adds 'slip to' functionality
+                    //{
+                    //    fslips->push_back(to);
+                    //    //cout << "slipped at" << endl <<
+                    //    //    tvals->at(curr) << " with " <<
+                    //    //    fvals->at(curr) << " to" << endl <<
+                    //    //    tvals->at(to) << " with " << 
+                    //    //    fvals->at(to) << endl;
+                    //}
                 }
             }
 
@@ -253,20 +264,19 @@ static const double zero = 1e-11;
             next = curr + stride;
         }
         
-        fslips->push_back(curr); // this looks like an ugly hack, but it's really physically motivated -- sort of not a slip, but reports last minimum
+        //fslips->push_back(curr); // this looks like an ugly hack, but it's really physically motivated -- sort of not a slip, but reports last minimum
 
         // for q pos
 
         curr = 0;
-        stride = round(0.5*stride);
-        next = stride;
+        uint qstride = round(0.5*stride); // needs to be shorter to capture spikes
+        next = qstride;
         maxel = max_element(qvals->begin(), qvals->end());
         
         max = *maxel;
-        low = 0.95*max;
+        low = 0.925*max;
         slipbound = max - low;
-        slopetol = -1.0;
-        double slopetol2 = 2.0;
+        double slopetol2 = 2.5;
 
         //slipsish.push_back(pauseat);    
         
@@ -281,50 +291,65 @@ static const double zero = 1e-11;
 
             double diff = abs(y1 - y2);
 
-            if (diff > slipbound && curr > stride)
+            if (diff > slipbound && curr > qstride)
             {
-                uint near = curr - round(1.0*stride);
+                uint near = curr + round(0.75*qstride);
                 
-                x1 = tvals->at(near);
-                x2 = tvals->at(curr);
-                y1 = qvals->at(near);
-                y2 = qvals->at(curr);
+                x2 = tvals->at(near);
+                x1 = tvals->at(curr);
+                y2 = qvals->at(near);
+                y1 = qvals->at(curr);
                 
                 double slope = abs((y2 - y1) / (x2 - x1));
-                double tmp = (qvals->at(next) - y2) / (tvals->at(next) - x2);
-                //cout << "qslip "  << x1 << " "  << slope << endl;
+                //double tmp = (qvals->at(next) - y2) / (tvals->at(next) - x2);
+                cout << "foundq "  << x1 << " "  << slope << endl;
 
                 if (slope > slopetol2)
                 {
                     qslips->push_back(curr);
+                    //uint to = curr + 10*qstride; 
+                    //if (to < end)
+                    //{
+                    //    qslips->push_back(to);
+                    //    cout << "slipped at" << endl <<
+                    //        tvals->at(curr) << " with " <<
+                    //        qvals->at(curr) << " to" << endl <<
+                    //        tvals->at(to) << " with " << 
+                    //        qvals->at(to) << endl;
+                    //        
+                    //}
                 }
             }
-
             curr = next;
-            next = curr + stride;
+            next = curr + qstride;
         }
         
-        qslips->push_back(curr); 
+        //qslips->push_back(curr); 
 
-        vector <uint> outs = *fslips;
+        vector <uint> aslips = *fslips;
         vector <uint> tmp = *qslips;        // this is just to collect the f and q slips, later we will eliminate dublicates
         
         // UNCOMMENT THESE TO ADD Q SLIPS
-        outs.insert(outs.end(),tmp.begin(),tmp.end());
-        sort(outs.begin(),outs.end());
+        aslips.insert(aslips.end(),tmp.begin(),tmp.end());
+        sort(aslips.begin(),aslips.end());
         
-        //for (auto& el : outs)
+        //for (auto& el : aslips)
         //    cout << el << ",";
         //    cout << endl;
         
-        //outs.erase(remove_if(outs.begin(), outs.end(), [stride](uint k, uint l){return l - k < 5*stride;}), outs.end());
-        outs.erase(unique(outs.begin(), outs.end(), [stride](uint k, uint l){return l - k < 5*stride;}), outs.end());
+        //aslips.erase(remove_if(aslips.begin(), aslips.end(), [stride](uint k, uint l){return l - k < 5*stride;}), aslips.end());
+        aslips.erase(unique(aslips.begin(), aslips.end(), [stride](uint k, uint l){return l - k < 2*stride;}), aslips.end()); // this isn't really working with slip-to enabled
         
-        //for (auto& el : outs)
+        //for (auto& el : aslips)
         //    cout << el << ",";
         //    cout << endl;
-        
-        *fslips = outs;    
+
+        vector <uint> tos = aslips;
+        for (auto& el : tos)
+            el += 10*stride;
+
+        *slips = aslips;
+        *sliptos = tos;
     }
     else
     {
