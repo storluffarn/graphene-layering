@@ -187,7 +187,7 @@ int main()
 	
 	double tmp = 0.5;	// 0.5 gives reliable timestep dep. 1.0 should be ok
 	double tstep = tmp * 3e-14;	
-	uint tsteps = 1.0/tmp * 8e5;	// has to be even beucasue lazyness
+	uint tsteps = 1.0/tmp * 10e5;	// has to be even beucasue lazyness
 	
 	string tfile = "time.csv";
 	string xfile = "xout.csv";
@@ -459,7 +459,7 @@ int main()
 //	for (auto &el : jennies)
 //		jstream << el.first << "," << el.second << endl;
 //	jstream.close();
-}
+} 
 
 
 

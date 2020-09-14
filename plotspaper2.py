@@ -8,9 +8,6 @@ import matplotlib.colors as colors
 import time
 
 kb = 1.38064852e-23
-xmass = 1e-23
-xdamp = 1.875e+13
-T = 300
 
 modif = 0.5
 tstep = modif * 3e-14	
@@ -18,7 +15,7 @@ steps = 1.0/modif * 10.0e5
 alltime = steps*tstep 
 
 traw = np.loadtxt(open("time.csv", "rb"), delimiter=",", skiprows=1)
-#xraw = np.loadtxt(open("xout.csv", "rb"), delimiter=",", skiprows=1)
+xraw = np.loadtxt(open("xout.csv", "rb"), delimiter=",", skiprows=1)
 qraw = np.loadtxt(open("qout.csv", "rb"), delimiter=",", skiprows=1)
 fraw = np.loadtxt(open("tomout.csv", "rb"), delimiter=",", skiprows=1)
 sraw = np.loadtxt(open("slips.csv", "rb"), delimiter=",", skiprows=0)
@@ -28,18 +25,33 @@ sqraw = np.loadtxt(open("slipsq.csv", "rb"), delimiter=",", skiprows=0)
 #sraw = np.loadtxt(open("slipsdetailed.csv", "rb"), delimiter=",", skiprows=1)
 avgraw = np.loadtxt(open("avgs.csv", "rb"), delimiter=",", skiprows=1)
 #sangraw = np.loadtxt(open("sangslips.csv", "rb"), delimiter=",", skiprows=0)
-#
+sangsimraw = np.loadtxt(open("sangcompsim.csv", "rb"), delimiter=",", skiprows=0)
+sangtheoraw = np.loadtxt(open("sangcomptheo.csv", "rb"), delimiter=",", skiprows=0)
+sangtheohighraw = np.loadtxt(open("sangcomptheohigh.csv", "rb"), delimiter=",", skiprows=0)
+
+
 params = {}
 with open("params.dat") as f:
     for line in f:
         (key,val) = line.split()
         params[key] = float(val)
 
+spring = params["spring"]
+supvel = params["supvel"]
+latcona = params["latcona"]
+latconb = params["latconb"]
+barr1 = params["barr1"]
+barr2 = params["barr2"]
+kappa1 = params["kappa1"]
+kappa2 = params["kappa2"]
+nu2 = params["nu2"]
+nu4 = params["nu4"]
+
 nscale = 1.0e9  # WARNING this is *only* for plotting, danger!
 
 tdata = nscale * traw[:,0]
 #sdata = nscale * traw[:,1]
-#xdata = nscale * xraw[:,0]
+xdata = nscale * xraw[:,0]
 qdata = nscale * qraw[:,0]
 fdata = nscale * fraw[:,2]
 supdata = nscale * traw[:,1]
@@ -58,6 +70,23 @@ slipsqq = nscale * sraw[:,2]
 sliptost = nscale * storaw[:,0]
 slipsftof = nscale * storaw[:,1]
 slipsqtoq = nscale * storaw[:,2]
+sangsimtt = sangsimraw[:,0]
+sangsimvv = sangsimraw[:,2]
+sangsimtf = nscale * sangsimraw[:,1]
+sangsimvf = nscale * sangsimraw[:,3]
+sangtheott = sangtheoraw[:,0]
+sangtheovv = sangtheoraw[:,2]
+sangtheotf = nscale * sangtheoraw[:,1]
+sangtheovf = nscale * sangtheoraw[:,3]
+sangtheohightt = sangtheohighraw[:,0]
+sangtheohighvv = sangtheohighraw[:,2]
+sangtheohightf = nscale * sangtheohighraw[:,1]
+sangtheohighvf = nscale * sangtheohighraw[:,3]
+#tmp = len(simf)
+#simf /= simf[round(tmp/2)]
+#simv /= simv[round(tmp/2)]
+#sangf /= sangf[round(tmp/2)]
+#sangv /= sangv[round(tmp/2)]
 
 #tdata = tdata[:round(len(tdata)*0.5)]
 #fdata = fdata[:round(len(fdata)*0.5)]
@@ -96,7 +125,7 @@ slipsqtoq = nscale * storaw[:,2]
 #fig0.savefig("plots/plot_vt.png")
 #
 ### standard plots
-#
+
 #fig1, ax = plt.subplots()
 #ax.plot(tdata,xdata)
 #ax.set(xlabel='t (nm)', ylabel='x (nm)')
@@ -106,16 +135,16 @@ slipsqtoq = nscale * storaw[:,2]
 #ax.xaxis.grid(True, which='major',linestyle='dotted')
 #ax.yaxis.grid(True, linestyle='dotted')
 #fig1.savefig("plots/plot_x.png")
-
+#
 #fig2, ax = plt.subplots()
 #ax.plot(tdata,qdata)
-#ax.plot(supdata,qdata)
+##ax.plot(supdata,qdata)
 #ax.set(xlabel='t (nm)', ylabel='q (nm)')
 #fig2.savefig("plots/plot_q.png")
-
+#
 #fig3, ax = plt.subplots()
 #ax.plot(tdata,fdata)
-#ax.plot(supdata,fdata)
+##ax.plot(supdata,fdata)
 #ax.set(xlabel='t (nm)', ylabel='x (nm)')
 #ax.xaxis.set_major_locator(ticker.MultipleLocator(1.0))
 #ax.xaxis.set_minor_locator(ticker.MultipleLocator(0.25))
@@ -183,7 +212,7 @@ slipsqtoq = nscale * storaw[:,2]
 #print ('mean kinetic energy: {}'.format(kinmean))
 #print ('true mean kinetic energy: {}'.format(0.5*kb*T))
 #
-###
+### Slipping points in noysy signal
 #
 #fig6, ax = plt.subplots()
 #ax.plot(tdata,fdata)
@@ -226,11 +255,15 @@ slipsqtoq = nscale * storaw[:,2]
 #ax.set(xlabel='t (nm)', ylabel='q (nN)')
 #fig7b.savefig("plots/plot_qavg.png")
 
+### Historgram
+
 #fig8, ax = plt.subplots()
 #nbins = 250
 #n,f1,patches = ax.hist(slipst,nbins,edgecolor='black')
 #ax.set(xlabel='t (ns)', ylabel='count')
 #fig8.savefig("plots/slip_hist.png")
+
+### paths in potential landscape
 
 #fig9, ax = plt.subplots()
 #
@@ -241,16 +274,6 @@ slipsqtoq = nscale * storaw[:,2]
 #
 #xlist, ylist = np.mgrid[0:xmax:pixels*1j, 0:qmax:pixels*1j]
 #
-#spring = params["spring"]
-#supvel = params["supvel"]
-#latcona = params["latcona"]
-#latconb = params["latconb"]
-#barr1 = params["barr1"]
-#barr2 = params["barr2"]
-#kappa1 = params["kappa1"]
-#kappa2 = params["kappa2"]
-#nu2 = params["nu2"]
-#nu4 = params["nu4"]
 #
 #def pot(x,q) : 
 #    out = (barr1 + kappa1*(x-q)**2)*(1-np.cos(2*np.pi*q/latcona)) + (barr2 + kappa2*(x-q)**2)*(1-np.cos(2*np.pi*x/latconb)) 
@@ -271,43 +294,169 @@ slipsqtoq = nscale * storaw[:,2]
 #ax.plot(sangx,sangy)
 #fig10.savefig("plots/sang.png")
 #
-### d-q with slips
+## f-q with slips
+
+#fig11, (ax1,ax2) = plt.subplots(nrows = 2, sharex = True)
 #
-fig11, (ax1,ax2) = plt.subplots(nrows = 2, sharex = True)
+#f12, = ax1.plot(tdata,qdata, label = "Signal")
+#f22, = ax1.plot(avgst,qavgs, label = "Noise reduction")
+#ax1.set(ylabel='q (nm)')
+#ax1.xaxis.set_major_locator(ticker.MultipleLocator(5.0))
+#ax1.xaxis.set_minor_locator(ticker.MultipleLocator(2.5))
+##ax1.xaxis.grid(True, which='minor', linestyle='dotted')
+##ax1.xaxis.grid(True, which='major', linestyle='dotted')
+##ax1.yaxis.grid(True, which='major', linestyle='dotted')
+#ax1.legend(loc='upper right')
+#
+#for slip in slipst:
+#    ax1.axvline(x=slip, color = 'gray', linestyle = 'dotted')
+##for slipto in sliptost:
+##    ax1.axvline(x=slipto, color = 'gray', linestyle = 'dotted')
+#
+#f21, = ax2.plot(tdata,fdata, label = "Signal")
+#f22, = ax2.plot(avgst,avgs, label = "Noise reduction")
+#ax2.set(xlabel='t (nm)', ylabel='F (nN)')
+#ax2.xaxis.set_major_locator(ticker.MultipleLocator(5.0))
+#ax2.xaxis.set_minor_locator(ticker.MultipleLocator(1.0))
+##ax2.xaxis.grid(True, which='minor', linestyle='dotted')
+##ax2.xaxis.grid(True, which='major', linestyle='dotted')
+##ax2.yaxis.grid(True, which='major', linestyle='dotted')
+##ax2.legend(loc='upper right')
+#
+#for slip in slipst :
+#    ax2.axvline(x=slip, color = 'gray', linestyle = 'dotted')
+##for slipto in sliptost:
+##    ax2.axvline(x=slipto, color = 'gray', linestyle = 'dotted')
+#
+#plt.subplots_adjust(hspace=0)
+#
+#timestamp = time.strftime("%Y%m%d-%H%M%S")
+#
+#fig11.savefig("plots/fq_slips")
+#fig11.savefig("plots/fq_slips{}".format(timestamp))
 
-f12, = ax1.plot(tdata,qdata, label = "Signal")
-f22, = ax1.plot(avgst,qavgs, label = "Noise reduction")
-ax1.set(ylabel='q (nm)')
-ax1.xaxis.set_major_locator(ticker.MultipleLocator(5.0))
-ax1.xaxis.set_minor_locator(ticker.MultipleLocator(2.5))
-#ax1.xaxis.grid(True, which='minor', linestyle='dotted')
-#ax1.xaxis.grid(True, which='major', linestyle='dotted')
-#ax1.yaxis.grid(True, which='major', linestyle='dotted')
-ax1.legend(loc='upper right')
+## stable unstable 
 
-for slip in slipst:
-    ax1.axvline(x=slip, color = 'gray', linestyle = 'dotted')
-for slipto in sliptost:
-    ax1.axvline(x=slipto, color = 'gray', linestyle = 'dotted')
+fig12, (ax2,ax1) = plt.subplots(nrows = 2, sharex = True)
 
-f21, = ax2.plot(tdata,fdata, label = "Signal")
-f22, = ax2.plot(avgst,avgs, label = "Noise reduction")
-ax2.set(xlabel='t (nm)', ylabel='F (nN)')
-ax2.xaxis.set_major_locator(ticker.MultipleLocator(5.0))
-ax2.xaxis.set_minor_locator(ticker.MultipleLocator(1.0))
-#ax2.xaxis.grid(True, which='minor', linestyle='dotted')
-#ax2.xaxis.grid(True, which='major', linestyle='dotted')
-#ax2.yaxis.grid(True, which='major', linestyle='dotted')
-ax2.legend(loc='upper right')
+ax1.plot(tdata,fdata, color='#ff7f0e', label = "")
+ax1.set(ylabel='F (nN)')
+ax1.xaxis.set_major_locator(ticker.MultipleLocator(1.0))
+ax1.xaxis.set_minor_locator(ticker.MultipleLocator(0.25))
+ax1.xaxis.grid(True, which='minor', linestyle='dotted')
+ax1.xaxis.grid(True, which='major', linestyle='dotted')
+ax1.yaxis.grid(True, which='major', linestyle='dotted')
+ax1.set(xlabel='t (nm)', ylabel='q (nN)')
+#ax1.legend(loc='lower right')
 
-for slip in slipst :
-    ax2.axvline(x=slip, color = 'gray', linestyle = 'dotted')
-for slipto in sliptost:
-    ax2.axvline(x=slipto, color = 'gray', linestyle = 'dotted')
+f2, = ax2.plot(tdata,qdata, color='#ff7f0e', label = "")
+ax2.xaxis.set_major_locator(ticker.MultipleLocator(1.0))
+ax2.xaxis.set_minor_locator(ticker.MultipleLocator(0.25))
+ax2.xaxis.grid(True, which='minor', linestyle='dotted')
+ax2.xaxis.grid(True, which='major', linestyle='dotted')
+ax2.yaxis.grid(True, which='major', linestyle='dotted')
+#ax2.legend(loc='lower right')
 
 plt.subplots_adjust(hspace=0)
 
-timestamp = time.strftime("%Y%m%d-%H%M%S")
+fig12.savefig("plots/fqthermal.png")
+##
+#fig13, ax = plt.subplots()
+#ax.plot(sangsimtt,sangsimtf,'*',label='simulation')
+#ax.plot(sangtheohightt,sangtheohightf,linestyle='dashed',color='#ff7f0e', label='theory high')
+#ax.plot(sangtheott,sangtheotf, label='theory low')
+#ax.set(xlabel='T (K)', ylabel='F (nN)')
+##ax.xaxis.set_major_locator(ticker.MultipleLocator(1.0))
+##ax.xaxis.set_minor_locator(icker.MultipleLocator(0.25))
+##ax.xaxis.grid(True, which='minor',linestyle='dotted')
+##ax.xaxis.grid(True, which='major',linestyle='dotted')
+##ax.yaxis.grid(True, linestyle='dotted#i')
+#ax.legend(loc='lower right')
+#ax.set_ylim([0,4])
+#
+#fig13.savefig("plots/sangcompf.png")
+#
+#fig14, ax = plt.subplots()
+#ax.plot(sangsimvv,sangsimvf,'*',label='simulation')
+#ax.plot(sangtheohighvv,sangtheohighvf,color='#ff7f0e',linestyle='dashed',label='theory high')
+#ax.plot(sangtheovv,sangtheovf,color='#ff7f0e', label='theory low')
+#
+#ax.set(xlabel='v (m/s)', ylabel='F (nN)')
+##ax.xaxis.set_major_locator(ticker.MultipleLocator(1.0))
+##ax.xaxis.set_minor_locator(ticker.MultipleLocator(0.25))
+##ax.xaxis.grid(True, which='minor',linestyle='dotted')
+##ax.xaxis.grid(True, which='major',linestyle='dotted')
+##ax.yaxis.grid(True, linestyle='dotted')
+#ax.legend(loc='lower right')
+#ax.set_ylim([0,4])
+#
+#fig14.savefig("plots/sangcompv.png")
+#
+#
+### Landscape plots (remastered from Mathematica)
 
-fig11.savefig("plots/fq_slips")
-#fig11.savefig("plots/fq_slips{}".format(timestamp))
+### density plots
+
+fig15, ax = plt.subplots()
+
+# constants
+
+xmax = 6.5e-9
+qmax = 1e-9
+bins = 1000
+
+#xlist, qlist = np.mgrid[0:xmax:bins*1j, 0:qmax:bins*1j]
+xlist, qlist = np.mgrid[-0.25e-9:xmax:bins*1j, -qmax:qmax:bins*1j] ## use this for retrace
+
+nuscale = 0.0;
+
+def pot(x,q) :
+    return (barr1 + kappa1*q**2) * (1 - np.cos(2*np.pi/latcona*(x - q))) + (barr2 + kappa2*q**2) * (1 - np.cos(2*np.pi/latconb*x)) + nuscale * (nu2*q**2 + nu4*q**4)
+
+# + n2*np.square(qlist) + n4*np.square(qlist) # not a proper part of the land scape
+
+zi = pot(xlist,qlist)
+
+toev = 6.242e+18
+
+im = ax.pcolormesh(nscale*xlist,nscale*qlist,toev*zi.reshape(xlist.shape),cmap='YlOrBr',rasterized=True)
+ax.plot(xdata,qdata)
+ax.set(xlabel='$x$ (nm)', ylabel='$q$ (nm)')
+
+cbar = fig15.colorbar(im)
+cbar.set_label(label='$V_\\mathrm{tip-sheet} + V_\\mathrm{tip-substrate}$')
+
+fig15.savefig("plots/landscape.png")
+#
+
+### retrace plots
+
+fig16, ax = plt.subplots()
+ax.plot(supdata,fdata)
+ax.set(xlabel='support position (nm)', ylabel='F (nN)')
+ax.xaxis.set_major_locator(ticker.MultipleLocator(1.0))
+ax.xaxis.set_minor_locator(ticker.MultipleLocator(0.25))
+ax.xaxis.grid(True, which='minor',linestyle='dotted')
+ax.xaxis.grid(True, which='major',linestyle='dotted')
+ax.yaxis.grid(True, linestyle='dotted')
+fig16.savefig("plots/retrace_f.png")
+
+fig17, ax = plt.subplots()
+ax.plot(supdata,xdata)
+ax.set(xlabel='support position (nm)', ylabel='x (nm)')
+ax.xaxis.set_major_locator(ticker.MultipleLocator(1.0))
+ax.xaxis.set_minor_locator(ticker.MultipleLocator(0.25))
+ax.xaxis.grid(True, which='minor',linestyle='dotted')
+ax.xaxis.grid(True, which='major',linestyle='dotted')
+ax.yaxis.grid(True, linestyle='dotted')
+fig17.savefig("plots/retrace_x.png")
+
+fig18, ax = plt.subplots()
+ax.plot(supdata,qdata)
+ax.set(xlabel='support position (nm)', ylabel='q (nm)')
+ax.xaxis.set_major_locator(ticker.MultipleLocator(1.0))
+ax.xaxis.set_minor_locator(ticker.MultipleLocator(0.25))
+ax.xaxis.grid(True, which='minor',linestyle='dotted')
+ax.xaxis.grid(True, which='major',linestyle='dotted')
+ax.yaxis.grid(True, linestyle='dotted')
+fig18.savefig("plots/retrace_q.png")

@@ -120,6 +120,7 @@ class tomlin
 	double time = 0;
 	double suppos = 0;
 	double temp;
+    double fricavg = 0;
 
 	// non physical parameters
 	const double tstep;
@@ -180,12 +181,14 @@ class tomlin
 	void eulmar();
 	void calcpot();
 	void calcfric();
+    void calcavgfric() {fricavg = accumulate(frics.begin(),frics.end(),0.0) / frics.size();};
 	void inctime();
 
 	void noisered(uint,uint);
 
 	// in line functions
-	void calckin(){x.calckin(); q.calckin(); kin = x.kin + q.kin;}
+	void calckin(){x.calckin(); q.calckin(); kin = x.kin + q.kin;
+    }
 	void treverse(){reverse = !reverse;}
 	void tpause(){pause = !pause;}
 
@@ -212,6 +215,7 @@ class tomlin
 	double getpot(){return pot;}
 	double getfric(double t){return frics[t];}
 	double getsuppos(){return suppos;} 
+    double getavgfric(){return fricavg;}
 	double getrnfric(double t) {return lessnoisef[t];}
 	double getrntime(double t) {return lessnoiset[t];}
 	double getrnxpos(double t) {return lessnoisexpos[t];}
@@ -399,7 +403,7 @@ void tomlin::writedata()
 				<< "nu2 "	  << nu2	<< endl << "nu4 "	 << nu4	   << endl 
 				<< "tstep "  << tstep  << endl << "tsteps " << tsteps << endl 
 				<< "xmass "  << x.mass  << endl << "qmass "  << q.mass  << endl 
-				<< "xdamp "  << x.damp  << endl << "qdamp "  << q.damp  << endl;
+				<< "xdamp "  << x.damp  << endl << "qdamp "  << q.damp  << endl << "temp " << temp << endl;
 	pstream.close();
 } 
 
@@ -434,8 +438,9 @@ void tomlin::printavgs()
 	double avgkin = accumulate(kins.begin(),kins.end(),0.0) / kins.size();
 
 	cout << "avg kin " << avgkin << endl;
-	
-	double avgfric = accumulate(frics.begin(),frics.end(),0.0) / frics.size();
+
+    calcavgfric();    
+	double avgfric = getavgfric();
 
 	cout << "avg fric " << avgfric << endl;
 }

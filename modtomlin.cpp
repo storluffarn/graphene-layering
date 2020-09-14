@@ -17,7 +17,26 @@ using namespace std;
 
 typedef unsigned int uint;
 
-// objects
+double sangavgfric (double tempt, double tempv)
+{
+
+    double barr11 = barr1 + (kappa1*qmax*qmax);
+    //double barr11 = nu2*pow(qmax,2) + nu4*pow(qmax,4);
+
+	double p0 = latcona*sqrt(xmass/barr11);
+	double pk = sqrt(xmass/spring);
+	double ok = p0/(2*pi*pk);
+	double ke = spring/(1+pow(ok,2));
+	double xc = acos(-pow(ok,2))/latcona2pi;
+	double rc = (latcona2pi*xc + 1.0/pow(ok,2)*sin(latcona2pi*xc)) / latcona2pi;
+	double vs = 2.0*tempv*xdamp*barr11*pow(p0*ok,2)/(kB*tempt*latcona)*pow(ok,2)/sqrt(1.0-pow(ok,4));
+	double df = pi*barr11/latcona * pow(1.5*kB*tempt/barr11,2.0/3.0) * pow(1.0-pow(ok,4),1.0/6.0) / (1 + pow(ok,2));
+	double fc = ke*(rc-latcona/2.0);
+		
+	double avgfric = fc - df*pow(abs(log(vs)),2.0/3.0);
+
+	return avgfric;
+}
 
 int main()
 {
@@ -46,7 +65,7 @@ int main()
 	
 	double modif = 0.5;	// 0.5 gives reliable time step dep. 1.0 should be ok
 	double tstep = modif * 3e-14;	
-	uint tsteps = 1.0/modif * 2.0e5;	// has to be even beucasue lazyness
+	uint tsteps = 1.0/modif * 5.0e5;	// has to be even beucasue lazyness
 
 	uint ttoa = ceil(latcon/(tstep));	// timesteps to minima
 
@@ -89,16 +108,16 @@ int main()
 		//	cout << "resuming at tstep / t = " << k << " / " << k*tstep << endl;
         //}
 		//	
-		//if (k == 0.25*tsteps)
+		//if (k == round(0.35*tsteps)) // 0.36 amd 0.8475
         //{
 		//	afm.treverse();
 		//	cout << "reversing at tstep / t = " << k << " / " << k*tstep << endl;
         //}
-		//if (k == 0.7*tsteps) //25 and 70 gives more or less match up
-        //{
-		//	afm.treverse();
-		//	cout << "reversing at tstep / t = " << k << " / " << k*tstep << endl;
-        //}
+		if (k == round(0.5*tsteps)) //0.25 and 0.7 gives more or less match up
+        {
+			afm.treverse();
+			cout << "reversing at tstep / t = " << k << " / " << k*tstep << endl;
+        }
 		//if (k == 20*ttoa)
 		//{
 		//	cout << "pausing at tstep / t = " << k << " / " << k*tstep << endl;
@@ -122,7 +141,37 @@ int main()
 	//afm.printins();
 	//afm.printouts();
 	//afm.printavgs();
-	afm.writedata();
+    afm.writedata();
+   
+    //afm.printavgs();
+    //cout << sangavgfric() << endl ;
+    cout << qmax << endl;
+    
+    double maxtemp = 400;
+    double mintemp = 200;
+    double maxvel = 4;
+    double minvel = 0.25;
+
+    uint sangsize = 100;
+
+    double tempstep = (maxtemp - mintemp)/sangsize;
+    double velstep = (maxvel - minvel)/sangsize;
+
+    ofstream sangcomp;
+    sangcomp.open("sangcomptheo.csv");
+
+    for (uint k = 0; k <= sangsize; k++)
+    {
+        double tmptemp = mintemp + k*tempstep;
+        double tmpvel = minvel + k*velstep;
+
+        double fric1 = sangavgfric(tmptemp,supvel);
+        double fric2 = sangavgfric(temp,tmpvel);
+
+        sangcomp << tmptemp << ',' << fric1 << ',' << tmpvel << ','<< fric2 << endl;
+    }
+
+    sangcomp.close();
 }
 
 	
