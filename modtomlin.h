@@ -377,7 +377,7 @@ void tomlin::writedata()
 	tomstream.open(tomfile);
 		tomstream << "kinetic, potential, friction" << endl;
 		for (uint k = 0; k < tsteps; k++)
-			tomstream << setprecision(16) << setprecision(16) << kins[k] << "," << pots[k] << "," << frics[k] << endl;
+			tomstream << setprecision(16) << kins[k] << "," << pots[k] << "," << frics[k] << endl;
 	tomstream.close();
 
 	tstream.open(tfile);

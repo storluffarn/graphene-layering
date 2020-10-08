@@ -18,6 +18,7 @@
 #include <vector>
 #include "slicingalgs.h"		// I fucked up my dependancies, modtomlin.h is needed but is included in slicingalgs.h... trying to save thins with common_stuff.h, still bad
 #include <chrono>
+#include <string>
 
 // lazy stuff
 
@@ -181,33 +182,59 @@ double sangavgfric ()
 	return avgfric;
 }
 
+double sangsup(double spos)
+{
+	double p0 = latcona*sqrt(xmass/barr1);
+	double pk = sqrt(xmass/spring);
+	double ok = p0/(2*pi*pk);
+	double ke = spring/(1+pow(ok,2));
+	double xc = acos(-pow(ok,2))/latcona2pi;
+	double rc = (latcona2pi*xc + 1.0/pow(ok,2)*sin(latcona2pi*xc)) / latcona2pi;
+	double vs = 2.0*supvel*xdamp*barr1*pow(p0*ok,2)/(kB*temp*latcona*sqrt(1.0-pow(ok,4)));
+   
+    double pf = pow(2.0/3.0 * barr1/(kB*temp) * 
+                pow(4*pi*rc/latcon, 1.5) * 
+                pow(ok,3)/pow(1-pow(ok, 4), 0.25)
+                , 2.0/3.0); // prefactor to f in Sang 
+        
+    double fs = pow(pf,2.0/3.0) * (1 - spos/rc);
+
+    double prob = 1.5*sqrt(fs)/vs * 
+                  exp(-pow(fs,1.5)- 1.0/vs - 
+                  exp(-pow(fs,1.5)));
+
+	return prob;
+    //return 1.0;
+}
+
 int main()
 { 
 	// MODEL PARAMTERES SET IN common_stuff.h
 	
 	double tmp = 0.5;	// 0.5 gives reliable timestep dep. 1.0 should be ok
 	double tstep = tmp * 3e-14;	
-	uint tsteps = 1.0/tmp * 10e5;	// has to be even beucasue lazyness
+	uint tsteps = 1.0/tmp * 1e5;	// has to be even beucasue lazyness
 	
 	string tfile = "time.csv";
-	string xfile = "xout.csv";
-	string qfile = "qout.csv";
+	string xfile = "xout";
+	string qfile = "qout";
 	string ffile = "tomout.csv";
 	string avgfile = "avgs.csv";
 	string pfile = "params.dat";
 
-	//time_t t = time(0);
-	//struct tm * now  = localtime(&t);
-	//char buffer [80];
-	//strftime (buffer,80,"%Y%m%d%H%M%S",now);
+	time_t t = time(0);
+	struct tm * now  = localtime(&t);
+	char buffer [80];
+	strftime (buffer,80,"%Y%m%d%H%M%S",now);
 
-	//string tfile = "time" + buffer + ".csv";
-	//string xfile = "xout" + buffer + ".csv";
-	//string qfile = "qout" + buffer + ".csv";
-	//string ffile = "tomout" + buffer + ".csv";
+    xfile.append(buffer);
+    qfile.append(buffer);
+    
+    xfile.append(".csv");
+    qfile.append(".csv");
+
 
 	//uint periods = static_cast <uint> (tstep*tsteps*supvel/latcon);
-
 
 	// for averaging
 	uint skip = 50;			// probably should be a fraction of mean	
@@ -341,37 +368,37 @@ int main()
 	    	//	cout << "finished " << l+1 << " out of " << runs <<  " iterations" << endl;
 	    	//}
             
-		    for (auto& el : fslips)
-            {    
-                privatefslips.push_back(afm.getrntime(el));
-                privatefrics.push_back(afm.getrnfric(el));
-            }
-		    for (auto& el : qslips)
-            {    
-                privateqslips.push_back(afm.getrntime(el));
-                privateqposs.push_back(afm.getrnqpos(el));
-            }
-		    for (auto& el : slips)
-            {    
-                double t = afm.getrntime(el);
-                double q = afm.getrnqpos(el);
-                double f = afm.getrnfric(el);
+		    //for (auto& el : fslips)
+            //{    
+            //    privatefslips.push_back(afm.getrntime(el));
+            //    privatefrics.push_back(afm.getrnfric(el));
+            //}
+		    //for (auto& el : qslips)
+            //{    
+            //    privateqslips.push_back(afm.getrntime(el));
+            //    privateqposs.push_back(afm.getrnqpos(el));
+            //}
+		    //for (auto& el : slips)
+            //{    
+            //    double t = afm.getrntime(el);
+            //    double q = afm.getrnqpos(el);
+            //    double f = afm.getrnfric(el);
 
-                vector <double> tmp = {t,f,q};
+            //    vector <double> tmp = {t,f,q};
 
-                privateslips.push_back(tmp);
-            }
+            //    privateslips.push_back(tmp);
+            //}
 
-		    for (auto& el : sliptos)
-            {          
-                double t = afm.getrntime(el);
-                double q = afm.getrnqpos(el);
-                double f = afm.getrnfric(el);
+		    //for (auto& el : sliptos)
+            //{          
+            //    double t = afm.getrntime(el);
+            //    double q = afm.getrnqpos(el);
+            //    double f = afm.getrnfric(el);
 
-                vector <double> tmp = {t,f,q};
+            //    vector <double> tmp = {t,f,q};
 
-                privatesliptos.push_back(tmp);
-            }
+            //    privatesliptos.push_back(tmp);
+            //}
             
             //privateslips.push_back(slipdata);
             //privateslips.push_back(sliptimes);
@@ -402,64 +429,61 @@ int main()
     //    }
     //    fspos << endl;
     //}
-     
-        ofstream fsslips;
-        fsslips.open("slips.csv");
-       
-        for (uint k = 0; k < publicslips.size(); k++)
-        { 
-            fsslips << publicslips[k][0] << "," 
-                    << publicslips[k][1] << "," 
-                    << publicslips[k][2] << endl;
-        }
-        fsslips.close();
-        
-        ofstream fssliptos;
-        fssliptos.open("sliptos.csv");
-       
-        for (uint k = 0; k < publicsliptos.size(); k++)
-        { 
-            fssliptos << publicsliptos[k][0] << "," 
-                      << publicsliptos[k][1] << "," 
-                      << publicsliptos[k][2] << endl;
-        }
-        fssliptos.close();
-        //
-        ofstream fsfslips;
-        fsfslips.open("slipsf.csv");
-        
-        for (uint k = 0; k < publicfslips.size(); k++)
-        { 
-            //fsslips << el << endl;
-            fsfslips << publicfslips[k] << "," << publicfrics[k] << endl;
-        }
-        fsfslips.close();
-      
-        ofstream fsqslips;
-        fsqslips.open("slipsq.csv");
-        
-        for (uint k = 0; k < publicqslips.size(); k++)
-        { 
-            fsqslips << publicqslips[k] << "," << publicqposs[k] << endl;
-        }
-	    fsqslips.close();
+    
+    //ofstream fsslips;
+    //fsslips.open("slips.csv");
+    
+    //for (uint k = 0; k < publicslips.size(); k++)
+    //{ 
+    //    fsslips << publicslips[k][0] << "," 
+    //            << publicslips[k][1] << "," 
+    //            << publicslips[k][2] << endl;
+    //}
+    //fsslips.close();
+    //
+    //ofstream fssliptos;
+    //fssliptos.open("sliptos.csv");
+    
+    //for (uint k = 0; k < publicsliptos.size(); k++)
+    //{ 
+    //    fssliptos << publicsliptos[k][0] << "," 
+    //              << publicsliptos[k][1] << "," 
+    //              << publicsliptos[k][2] << endl;
+    //}
+    //fssliptos.close();
+    ////
+    //ofstream fsfslips;
+    //fsfslips.open("slipsf.csv");
+    //
+    //for (uint k = 0; k < publicfslips.size(); k++)
+    //{ 
+    //    //fsslips << el << endl;
+    //    fsfslips << publicfslips[k] << "," << publicfrics[k] << endl;
+    //}
+    //fsfslips.close();
+    
+    //ofstream fsqslips;
+    //fsqslips.open("slipsq.csv");
+    //
+    //for (uint k = 0; k < publicqslips.size(); k++)
+    //{ 
+    //    fsqslips << publicqslips[k] << "," << publicqposs[k] << endl;
+    //}
+	//fsqslips.close();
 
-//	double ending = 2e-9;
-//	uint diststeps = 100;
-//	double diststep = ending / diststeps;;
-//	
-//	vector <pair<double,double>> jennies;
-//	jennies.reserve(diststeps);
-//
-//	jennydist(diststep,diststeps,&jennies);
-//	
-//	ofstream jstream;
-//
-//	jstream.open("sangslips.csv");
-//	for (auto &el : jennies)
-//		jstream << el.first << "," << el.second << endl;
-//	jstream.close();
+	double ending = 2e-9;
+	uint diststeps = 1000;
+	double diststep = ending / diststeps;;
+	
+	ofstream jstream;
+	jstream.open("sangslips.csv");
+	
+    for (uint k = 0; k < diststeps; k++)
+		jstream << k*diststep << "," << sangsup(k*diststep) << endl;
+
+	jstream.close();
 } 
+
 
 
 

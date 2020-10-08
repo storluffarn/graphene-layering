@@ -241,7 +241,7 @@ static const double zero = 1e-11;
                 
                 double slope = (y2 - y1) / (x2 - x1);
 
-                cout << "foundx " << x1 << " " << y1 << " "  << slope << endl;
+                //cout << "foundx " << x1 << " " << y1 << " "  << slope << endl;
 
                 if (slope < slopetol)
                 {
@@ -302,7 +302,7 @@ static const double zero = 1e-11;
                 
                 double slope = abs((y2 - y1) / (x2 - x1));
                 //double tmp = (qvals->at(next) - y2) / (tvals->at(next) - x2);
-                cout << "foundq "  << x1 << " "  << slope << endl;
+                //cout << "foundq "  << x1 << " "  << slope << endl;
 
                 if (slope > slopetol2)
                 {

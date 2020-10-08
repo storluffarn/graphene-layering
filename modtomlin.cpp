@@ -113,11 +113,11 @@ int main()
 		//	afm.treverse();
 		//	cout << "reversing at tstep / t = " << k << " / " << k*tstep << endl;
         //}
-		if (k == round(0.5*tsteps)) //0.25 and 0.7 gives more or less match up
-        {
-			afm.treverse();
-			cout << "reversing at tstep / t = " << k << " / " << k*tstep << endl;
-        }
+		//if (k == round(0.5*tsteps)) //0.25 and 0.7 gives more or less match up
+        //{
+		//	afm.treverse();
+		//	cout << "reversing at tstep / t = " << k << " / " << k*tstep << endl;
+        //}
 		//if (k == 20*ttoa)
 		//{
 		//	cout << "pausing at tstep / t = " << k << " / " << k*tstep << endl;
