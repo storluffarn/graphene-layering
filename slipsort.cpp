@@ -29,6 +29,7 @@ class labelclass
     	// data members
     	
     	string filename;							// name of file to read
+        vector <double> ts;
     	vector <double> xs;						    // data read
     	vector <double> qs;						    // data read
     	uint size;									// numbers written/read
@@ -49,6 +50,7 @@ class labelclass
     	{
     		readdata();		    			// read data from file
     		size = xs.size();						// save size of data
+            ts.reserve(size);
     		xs.reserve(size);						// save size of data
     		qs.reserve(size);						// save size of data
     	}
@@ -57,8 +59,10 @@ class labelclass
     	
     	// inline functions
     
-    	vector <double>* getxs(){return &xs;}	
-    	vector <double>* getqs(){return &qs;}	
+    	vector <double>* getts(){return &ts;}
+    	vector <double>* getxs(){return &xs;}
+    	vector <double>* getqs(){return &qs;}
+    	double gett(uint i){return ts[i];}
     	double getx(uint i){return xs[i];}
     	double getq(uint i){return qs[i];}	
         uint getsize() {return size;}
@@ -67,6 +71,7 @@ class labelclass
     
     struct slippoint
     {
+        double t;
         double x;
         double q;
         char label;
@@ -123,7 +128,7 @@ class labelclass
         
         for (uint k = 0; k < size; k++)
         {
-            slippoint slip = {data.getx(k),data.getq(k),};
+            slippoint slip = {data.gett(k),data.getx(k),data.getq(k),};
             slipdata.push_back(slip);
         }
     }
@@ -147,6 +152,7 @@ void labelclass::dataclass::readdata()			// reads data from file
             
             if (t > 1e-10)  // it is expected that data before this decorrelation time is faulty
             {
+                ts.push_back(t);
                 xs.push_back(x);
                 qs.push_back(q);
             }
@@ -251,10 +257,10 @@ char labelclass::findlabel(uint n)
 
 void labelclass::printslipdata()
 {
-    cout << "slip data: x, q, label" << endl;
+    cout << "slip data: t, x, q, label" << endl;
     for (auto &slip : slipdata)
     {
-        cout << slip.x << " " << slip.q << " " << slip.label << endl;
+        cout << slip.t << " " << slip.x << " " << slip.q << " " << slip.label << endl;
     }
 }
 
@@ -262,7 +268,7 @@ int main()
 {
     //string filename1 = "./data/to_jenny/histogram/test.csv";
     string filename1 = "./data/to_jenny/histogram/slips.csv";
-    string filename2 = "./data/to_jenny/histogram/slipsto.csv";
+    string filename2 = "./data/to_jenny/histogram/sliptos.csv";
 
     vector <double> targetsx = {0.037,1.268,1.503,1.736,1.966,2.207,1.544,1.767,1.996,2.223,2.462,1.800,2.016,2.241,2.459,2.034,2.254,2.479};
 
@@ -278,7 +284,7 @@ int main()
     labeleddatafrom.labeldata();
     auto fromdata = labeleddatafrom.getslipdata();
 
-    labelclass labeleddatato(filename1,&targetsx,&targetsq);
+    labelclass labeleddatato(filename2,&targetsx,&targetsq);
     labeleddatato.labeldata();
     auto todata = labeleddatato.getslipdata();
 
@@ -287,11 +293,11 @@ int main()
     ofstream fs;
     fs.open("./data/labelleddata.dat");
 
-    fs << "slip data in SI units. Data ordering: first from, then to, in the order: x, q, label" << endl;
+    fs << "Slip data in SI units. Data ordering: slip from (t,x,q,label), slip to (x,q)" << endl;
 
     for (uint k = 0; k < size; k++)
     {
-        fs << fromdata->at(k).x << " " << fromdata->at(k).q << " " << fromdata->at(k).label << " "
+        fs << fromdata->at(k).t << " " << fromdata->at(k).x << " " << fromdata->at(k).q << " " << fromdata->at(k).label << " "
            << todata->at(k).x << " " << todata->at(k).q << " " << todata->at(k).label << endl; 
     }
 
