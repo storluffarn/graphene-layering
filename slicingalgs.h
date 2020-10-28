@@ -357,4 +357,3 @@ static const double zero = 1e-11;
     }
 }
 
-

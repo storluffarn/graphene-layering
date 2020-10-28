@@ -101,6 +101,10 @@ class tomlin
 		}
 	};
 
+    // data structures
+    
+    struct target{double x; double q;};
+
 	// model parameters
 	const double spring;
 	const double supvel;
@@ -154,10 +158,11 @@ class tomlin
 	vector <double> lessnoiseqvel;
 	vector <double> lessnoiseqacc;
 	vector <double> lessnoisesuppos;
+    vector <target> targets;
+    vector <double> sliptimes;
+    vector <uint> sliplabels;
 
 	// functions
-	void xacc();
-	void qacc();
 	void testxacc();
 	void testqacc();
 	pair<double,double> langevin();
@@ -170,6 +175,7 @@ class tomlin
 	const string tomfile;
 	const string avgfile;
 	const string pfile;
+	const string sfile;
 
 	// need for speed
 	const double oneosix = 1.0/6.0;
@@ -180,9 +186,12 @@ class tomlin
 	void rk4();
 	void eulmar();
 	void calcpot();
+	void xacc();
+	void qacc();
 	void calcfric();
     void calcavgfric() {fricavg = accumulate(frics.begin(),frics.end(),0.0) / frics.size();};
 	void inctime();
+    void findsortslips();
 
 	void noisered(uint,uint);
 
@@ -201,6 +210,7 @@ class tomlin
 	void setaccq(double c){q.acc = c;}
 	void settime(double c){time = c;}
 	void setsuppos(double c){suppos = c;}
+    void settargts(vector<double>*, vector<double>*);
 
 	double getposx(uint t){return x.poss[t];}
 	double getvelx(){return x.vel;}
@@ -232,7 +242,9 @@ class tomlin
 	vector <double>* getrnqposs() {return &lessnoiseqpos;}
 	vector <double>* getrntimes() {return &lessnoiset;}
 	vector <double>* getrnsupposs() {return &lessnoisesuppos;}
-
+    vector <double>* getsliptimes() {return &sliptimes;}
+    vector <uint>* getsliplabels() {return &sliplabels;}
+        
 	// io stuff
 	void pushvals();
 	void writedata();
@@ -248,12 +260,13 @@ class tomlin
 		   double barr2, double kappa1, double kappa2, double nu2, double nu4, 
 		   double temp, double tstep, uint tsteps, double xmass, double qmass, 
 		   double xdamp, double qdamp, string tfile, string xfile, string qfile, 
-		   string tomfile, string avgfile, string pfile)
+		   string tomfile, string avgfile, string pfile, string sfile)
 		 : spring(spring), supvel(supvel), latcon(latcon), align(align), barr1(barr1),
 	       barr2(barr2), kappa1(kappa1), kappa2(kappa2), nu2(nu2), nu4(nu4), temp(temp),
 		   tstep(tstep), tsteps(tsteps), x(xmass,xdamp,tsteps), 
 		   q(qmass,qdamp,tsteps), tfile(tfile), xfile(xfile), 
-		   qfile(qfile), tomfile(tomfile), avgfile(avgfile), pfile(pfile)
+		   qfile(qfile), tomfile(tomfile), avgfile(avgfile), 
+           pfile(pfile), sfile(sfile)
 		{
 		   kins.reserve(tsteps);
 		   pots.reserve(tsteps);
@@ -267,7 +280,7 @@ class tomlin
 
 void tomlin::calcpot()
 {
-	pot = 0.5*spring*pow(x.pos-suppos*time,2) + 
+	pot = 0.5*spring*pow(x.pos-suppos,2) + 
 		  (barr1 + kappa1*pow(q.pos,2)) * (1-cos(rlatcona2pi*(x.pos-q.pos))) + 
 		  (barr2 + kappa2*pow(q.pos,2)) * (1-cos(rlatcona2pi*align*x.pos)) + 
 		  nu2*pow(q.pos,2) + nu4*pow(q.pos,4);
@@ -360,7 +373,7 @@ void tomlin::inctime()
 
 void tomlin::writedata()
 { 
-	ofstream xstream, qstream, tomstream, tstream, avgstream, pstream;
+	ofstream xstream, qstream, tomstream, tstream, avgstream, pstream, sstream;
 
 	xstream.open(xfile);
 		xstream << "position, velocity, acceleration" << endl;
@@ -387,11 +400,17 @@ void tomlin::writedata()
 	tstream.close();
 
 	avgstream.open(avgfile);
-		avgstream << "time, avged friction " << endl;
+ 		avgstream << "time, avged friction, suppos, q " << endl;
 		uint size = lessnoisef.size();
 		for (uint k = 0; k < size; k++)
 			avgstream << setprecision(16) << lessnoiset[k] << "," << lessnoisef[k] << "," << lessnoisesuppos[k] << "," << lessnoiseqpos[k] << endl;
 	avgstream.close();
+
+    sstream.open(sfile);
+        sstream << "slip time, minimum" << endl;
+        for (uint k = 0; k < sliptimes.size(); k++)
+            sstream << setprecision(16) << sliptimes[k] << "," << sliplabels[k] << endl;
+    sstream.close();
 	
 	pstream.open(pfile);
 		pstream << setprecision(16) 
@@ -609,7 +628,7 @@ void tomlin::noisered(uint halfmeansize, uint skip)
 	
 	lessnoiset.reserve(ceil(tsteps/skip));
 	lessnoisef.reserve(ceil(tsteps/skip));
-	//lessnoisexpos.reserve(ceil(tsteps/skip));
+	lessnoisexpos.reserve(ceil(tsteps/skip));
 	//lessnoisexvel.reserve(ceil(tsteps/skip));
 	//lessnoisexacc.reserve(ceil(tsteps/skip));
 	lessnoiseqpos.reserve(ceil(tsteps/skip));
@@ -641,7 +660,7 @@ void tomlin::noisered(uint halfmeansize, uint skip)
 
 	lessnoiset.push_back(times[midel]);
     lessnoisef.push_back(avg);
-	//lessnoisexpos.push_back(times[midel]);
+	lessnoisexpos.push_back(times[midel]);
 	//lessnoisexvel.push_back(times[midel]);
 	//lessnoisexacc.push_back(times[midel]);
 	lessnoiseqpos.push_back(qavg);
@@ -665,7 +684,7 @@ void tomlin::noisered(uint halfmeansize, uint skip)
 		
 		lessnoiset.push_back(times[midel]);
 		lessnoisef.push_back(avg);
-	    //lessnoisexpos.push_back(x.poss[midel]);
+	    lessnoisexpos.push_back(x.poss[midel]);
     	//lessnoisexvel.push_back(x.vels[midel]);
     	//lessnoisexacc.push_back(x.accs[midel]);
     	lessnoiseqpos.push_back(qavg);
@@ -705,5 +724,105 @@ void tomlin::justkicks()
 	x.acc = xkick;	
 }
 
+void tomlin::settargts(vector<double>* xs, vector<double>* qs)
+{
+    uint els = xs->size();
 
+    for (uint k = 0; k < els; k++)
+    {
+        target t = {xs->at(k), qs->at(k)};
+
+        targets.push_back(t);
+    }
+}
+
+void tomlin::findsortslips()
+{
+    uint datasize = lessnoiseqpos.size();
+    uint targsize = targets.size();
+
+    uint sincelast = -1;
+    uint lastpushed = -1;
+    uint toladj = 5;
+    double toldiff = 0.025;
+
+    for (uint k = 0; k < datasize; k++)
+    {
+        double x = lessnoisexpos[k];
+        double q = lessnoiseqpos[k];
+   
+        vector <double> offsetsx;
+        vector <double> offsetsq;
+
+        for (uint l = 0; l < targsize; l++)
+        {
+            double tx = targets[l].x;
+            double offsetx = abs(x - tx);
+            offsetsx.push_back(offsetx/tx);
+            //cout << x << " " << tx << endl;
+            
+            double tq = targets[l].q;
+            double offsetq = abs(q - tq);
+            offsetsq.push_back(offsetq/tq);
+        }
+
+        //for (auto &el : offsetsx)
+        //    cout << el << " ";
+        //cout << endl;
+
+        vector <double> norms;
+        for (uint l = 0; l < targsize; l++)
+        {
+            double w1 = 0.8;
+            double w2 = offsetsx[l]*(1.0-w1)/offsetsq[l] + 1.0;
+            //double norm = sqrt(pow(w1*offsetsx[l],2) + pow(w2*offsetsq[l],2));
+            double norm = (w1*offsetsx[l] + w2*offsetsq[l])/2;
+            //cout << norm << " ";
+            norms.push_back(norm);
+        }
+        //cout << endl;
+        
+        //for (auto &el : norms)
+        //    cout << el << " ";
+        //cout << endl;
+
+        //transform(norms.begin(),norms.end(),norms.begin(),[](double n){return 0.5*n;});
+
+        double mindiff = *min_element(norms.begin(),norms.end());
+        auto minit = min_element(norms.begin(),norms.end());
+        uint minel = distance(norms.begin(),minit);
+
+        //cout << newminel << " " << minel << " " << norms[newminel] << endl;
+
+        //if (mindiff < 0.1)
+        //{
+        //    cout << 1 << endl;
+        //}
+        //if (newminel != minel)
+        //{
+        //    cout << 2 << endl;
+        //}
+        //if (sincelast > adj)
+        //{
+        //    cout << 3 << endl;
+        //}
+        if (mindiff < toldiff && minel != lastpushed && sincelast > toladj)
+        {
+            //char label = static_cast<char> (newminel + 65);
+            uint label = minel;
+            
+            //cout << mindiff << endl;
+
+            sliptimes.push_back(lessnoiset[k]);
+            sliplabels.push_back(label);
+
+            lastpushed = label;
+            sincelast = 0;
+        }
+
+        //cout << label << endl;
+
+        sincelast++;
+    }
+}
 

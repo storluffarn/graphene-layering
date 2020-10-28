@@ -207,6 +207,39 @@ double sangsup(double spos)
     //return 1.0;
 }
 
+uint getlabel(vector <double>* targetsx, vector <double>* targetsq, double x, double q)
+{
+    uint targsize = targetsx->size();
+    vector <double> offsetsx;
+    vector <double> offsetsq;
+
+    for (uint l = 0; l < targsize; l++)
+    {
+        double tx = targetsx->at(l);
+        double offsetx = abs(x - tx);
+        offsetsx.push_back(offsetx/tx);
+        //cout << x << " " << tx << endl;
+        
+        double tq = targetsq->at(l);
+        double offsetq = abs(q - tq);
+        offsetsq.push_back(offsetq/tq);
+    }
+
+    vector <double> norms;
+    for (uint l = 0; l < targsize; l++)
+    {
+        double w1 = 0.9;
+        double w2 = offsetsx[l]*(1.0-w1)/offsetsq[l] + 1.0;
+        double norm = (w1*offsetsx[l] + w2*offsetsq[l])/2;
+        norms.push_back(norm);
+    }
+
+    auto minit = min_element(norms.begin(),norms.end());
+    uint minel = distance(norms.begin(),minit);
+
+    return minel;
+}
+
 int main()
 { 
 	// MODEL PARAMTERES SET IN common_stuff.h
@@ -261,27 +294,19 @@ int main()
 	uint end = round(tsteps/skip)-skip;		// this is a bit risky, size should be constant over many runs though...
 	
     uint pauseat = 20;
-	uint runs = 1;
+	uint runs = 2;
 		
     //chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
     
     //vector <vector <double>> publicslips;
-    vector <vector <double>> publicslips;
-    vector <vector <double>> publicsliptos;
-    vector <double> publicfslips;
-    vector <double> publicqslips;
-    vector <double> publicfrics;
-    vector <double> publicqposs;
-    
+    vector <vector <double>> publicslips1; // 1 indicates using the third method in slicing algs.h, yes the notation is bad, horrific even, still, such is the nature of reality
+    vector<pair<double,uint>> publicslips2;
+
     #pragma omp parallel
     { 
 	    //vector <vector <double>> privateslips;
-        vector <vector <double>> privateslips;
-        vector <vector <double>> privatesliptos;
-	    vector <double> privatefslips;
-	    vector <double> privatefrics;
-	    vector <double> privateqslips;
-	    vector <double> privateqposs;
+        vector <vector <double>> privateslips1;
+        vector<pair<double,uint>> privateslips2;
         
         #pragma omp for nowait
 	    for ( uint l = 0; l < runs; l++)
@@ -335,8 +360,8 @@ int main()
 
 	    	afm.noisered(halfmeansize,skip);	
 	    	halfintervals(3, adj, end, stride,round(pauseat*ttoa/stride), afm.getrntimes(), afm.getrnqposs(), afm.getrnfrics(), &fslips, &qslips, &slips, &sliptos);
-	    	afm.findsortslips();	// ONLY FOR DIAGNOSTICS REMOVE LATER (it won't make sense)
-	    	afm.writedata();		// ONLY FOR DIAGNOSTICS REMOVE LATER (it won't make sense)
+	    	afm.findsortslips();    // use this for integrated slip detection	
+	    	//afm.writedata();		// ONLY FOR DIAGNOSTICS REMOVE LATER (it won't make sense)
 	    	//t1 = std::chrono::high_resolution_clock::now();
 	    
 	    	// this rn business is fooken ugly...	
@@ -381,16 +406,6 @@ int main()
 	    	//	cout << "finished " << l+1 << " out of " << runs <<  " iterations" << endl;
 	    	//}
             
-		    for (auto& el : fslips)
-            {    
-                privatefslips.push_back(afm.getrntime(el));
-                privatefrics.push_back(afm.getrnfric(el));
-            }
-		    for (auto& el : qslips)
-            {    
-                privateqslips.push_back(afm.getrntime(el));
-                privateqposs.push_back(afm.getrnqpos(el));
-            }
 		    for (auto& el : slips)
             {    
                 double t = afm.getrntime(el);
@@ -399,19 +414,21 @@ int main()
 
                 vector <double> tmp = {t,f,q};
 
-                privateslips.push_back(tmp);
+                privateslips1.push_back(tmp);
+            }
+            for (uint k = 0; k < afm.getsliptimes()->size(); k++)
+            {
+                pair <double, uint> tmp = {afm.getsliptimes()->at(k), afm.getsliplabels()->at(k)};  // could have implemented those accessor in a more appealing way...
+
+                privateslips2.push_back(tmp);
             }
             
             //privateslips.push_back(slipdata);
             //privateslips.push_back(sliptimes);
 	    }
         #pragma omp critical
-        publicslips.insert(publicslips.end(), privateslips.begin(), privateslips.end());
-        publicsliptos.insert(publicsliptos.end(), privatesliptos.begin(), privatesliptos.end());
-        publicfslips.insert(publicfslips.end(), privatefslips.begin(), privatefslips.end());
-        publicqslips.insert(publicqslips.end(), privateqslips.begin(), privateqslips.end());
-        publicfrics.insert(publicfrics.end(), privatefrics.begin(), privatefrics.end());
-        publicqposs.insert(publicqposs.end(), privateqposs.begin(), privateqposs.end());
+        publicslips1.insert(publicslips1.end(), privateslips1.begin(), privateslips1.end());
+        publicslips2.insert(publicslips2.end(), privateslips2.begin(), privateslips2.end());
     } 
 
 	//chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
@@ -435,62 +452,34 @@ int main()
     ofstream fsslips;
     fsslips.open("slips.csv");
     
-    for (uint k = 0; k < publicslips.size(); k++)
+    for (uint k = 0; k < publicslips1.size(); k++)
     { 
-        fsslips << publicslips[k][0] << "," 
-                << publicslips[k][1] << "," 
-                << publicslips[k][2] << endl;
+        double x = publicslips1[k][1]/spring + supvel*publicslips1[k][0];
+        double q = publicslips1[k][2];
+
+        uint label = getlabel(&targetsx,&targetsq,x,q); // not working at the moment
+
+        fsslips << publicslips1[k][0] << "," 
+                << publicslips1[k][1] << "," 
+                << publicslips1[k][2] << ","
+                << label << endl;
     }
     fsslips.close();
-    //
-    //ofstream fssliptos;
-    //fssliptos.open("sliptos.csv");
-    //
-    //for (uint k = 0; k < publicsliptos.size(); k++)
-    //{ 
-    //    fssliptos << publicsliptos[k][0] << "," 
-    //              << publicsliptos[k][1] << "," 
-    //              << publicsliptos[k][2] << endl;
-    //}
-    //fssliptos.close();
-    ////
-    ofstream fsfslips;
-    fsfslips.open("slipsf.csv");
     
-    for (uint k = 0; k < publicfslips.size(); k++)
+    ofstream fsslips2;
+    fsslips.open("sliplabels.csv");
+    
+    for (uint k = 0; k < publicslips2.size(); k++)
     { 
-        //fsslips << el << endl;
-        fsfslips << publicfslips[k] << "," << publicfrics[k] << endl;
+        fsslips << publicslips2[k].first << "," 
+                << publicslips2[k].second << endl;
     }
-    fsfslips.close();
-    
-    ofstream fsqslips;
-    fsqslips.open("slipsq.csv");
-    
-    for (uint k = 0; k < publicqslips.size(); k++)
-    { 
-        fsqslips << publicqslips[k] << "," << publicqposs[k] << endl;
-    }
-	fsqslips.close();
-
+    fsslips2.close();
 
 	double ending = 2e-9;
 	uint diststeps = 1000;
 	double diststep = ending / diststeps;;
 	
-	ofstream jstream;
-	jstream.open("sangslips.csv");
-	
-    //for (uint k = 0; k < diststeps; k++)
-    //{
-    //    if (!isnan(sangsup(k*diststep)))
-
-    //}
-
-    //for (uint k = 0; k < diststeps; k++)
-	//	jstream << k*diststep << "," << sangsup(k*diststep) << endl;
-
-	jstream.close();
 }
 
 
