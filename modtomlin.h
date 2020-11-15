@@ -755,14 +755,16 @@ void tomlin::findsortslips()
         vector <double> offsetsq;
 
         for (uint l = 0; l < targsize; l++)
-        {
+        { 
             double tx = targets[l].x;
-            double offsetx = abs(x - tx);
+            //double offsetx = abs(x - tx);
+            double offsetx = x - tx;
             offsetsx.push_back(offsetx/tx);
             //cout << x << " " << tx << endl;
             
             double tq = targets[l].q;
-            double offsetq = abs(q - tq);
+            //double offsetq = abs(q - tq);
+            double offsetq = q - tq;
             offsetsq.push_back(offsetq/tq);
         }
 
@@ -773,10 +775,11 @@ void tomlin::findsortslips()
         vector <double> norms;
         for (uint l = 0; l < targsize; l++)
         {
-            double w1 = 0.8;
-            double w2 = offsetsx[l]*(1.0-w1)/offsetsq[l] + 1.0;
+            //double w1 = 0.8;
+            //double w2 = offsetsx[l]*(1.0-w1)/offsetsq[l] + 1.0;
             //double norm = sqrt(pow(w1*offsetsx[l],2) + pow(w2*offsetsq[l],2));
-            double norm = (w1*offsetsx[l] + w2*offsetsq[l])/2;
+            //double norm = (w1*offsetsx[l] + w2*offsetsq[l])/2;
+            double norm = sqrt(pow(offsetsx[l],2) + pow(offsetsq[l],2));
             //cout << norm << " ";
             norms.push_back(norm);
         }

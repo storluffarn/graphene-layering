@@ -274,21 +274,21 @@ anfrdata = anfrdata / anscale
 f1, = ax.plot(nunudata,nufrdata,'g^')
 f2, = ax.plot(annudata,anfrdata,color='#ff7f0e')
 
-f3, = ax.plot(x4,carp1,'bo') # graphene
-ax.plot(x3,carp2,'bo')
-ax.plot(x2,carp3,'bo')
-f4, = ax.plot(x22,carp4,'bs') # MoS2
-ax.plot(x4,carp5,'bs')
-ax.plot(x22,carp6,'bs')
-f5, = ax.plot(x4,carp7,'bD') # NbSe2
-
-f6, = ax.plot(x4,dong,'mP')
-f7, = ax.plot(x4,li,'mX',linewidth=1)
+#f3, = ax.plot(x4,carp1,'bo') # graphene
+#ax.plot(x3,carp2,'bo')
+#ax.plot(x2,carp3,'bo')
+#f4, = ax.plot(x22,carp4,'bs') # MoS2
+#ax.plot(x4,carp5,'bs')
+#ax.plot(x22,carp6,'bs')
+#f5, = ax.plot(x4,carp7,'bD') # NbSe2
+#
+#f6, = ax.plot(x4,dong,'mP')
+#f7, = ax.plot(x4,li,'mX',linewidth=1)
 
 ax.set_xlim(0.0,4.5)
 ax.set_ylim(0.0,1.75)
-ax.set(xlabel='$\\nu_4 / \\nu_4^0$ or \n number of layers', ylabel='F/F($\\nu_4^0$) or \n friction relative to one layer' )
-ax.legend((f1, f2, f3, f4, f5, f6, f7), ('model sim.', 'analytic', 'graphene [4]', 'MoS2 [4]', 'NbSe2 [4]', 'graphene [17]', 'grahpene [5]'), loc='upper right')
+ax.set(xlabel='$\\nu_4 / \\nu_4^0$', ylabel='F/F($\\nu_4^0$)' )
+ax.legend((f1, f2), ('model sim.', 'analytic'))
 
 ax.xaxis.set_major_locator(ticker.MultipleLocator(1.0))
 ax.xaxis.set_minor_locator(ticker.MultipleLocator(0.5))

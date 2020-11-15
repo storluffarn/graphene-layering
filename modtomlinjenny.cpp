@@ -294,7 +294,7 @@ int main()
 	uint end = round(tsteps/skip)-skip;		// this is a bit risky, size should be constant over many runs though...
 	
     uint pauseat = 20;
-	uint runs = 2;
+	uint runs = 1;
 		
     //chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
     
@@ -361,7 +361,7 @@ int main()
 	    	afm.noisered(halfmeansize,skip);	
 	    	halfintervals(3, adj, end, stride,round(pauseat*ttoa/stride), afm.getrntimes(), afm.getrnqposs(), afm.getrnfrics(), &fslips, &qslips, &slips, &sliptos);
 	    	afm.findsortslips();    // use this for integrated slip detection	
-	    	//afm.writedata();		// ONLY FOR DIAGNOSTICS REMOVE LATER (it won't make sense)
+	        afm.writedata();		// ONLY FOR DIAGNOSTICS REMOVE LATER (it won't make sense)
 	    	//t1 = std::chrono::high_resolution_clock::now();
 	    
 	    	// this rn business is fooken ugly...	

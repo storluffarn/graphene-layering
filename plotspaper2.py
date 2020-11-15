@@ -15,7 +15,7 @@ steps = 1.0/modif * 10.0e5
 alltime = steps*tstep 
 
 traw = np.loadtxt(open("time.csv", "rb"), delimiter=",", skiprows=1)
-xraw = np.loadtxt(open("xoux.csv", "rb"), delimiter=",", skiprows=1)
+xraw = np.loadtxt(open("xout.csv", "rb"), delimiter=",", skiprows=1)
 qraw = np.loadtxt(open("qout.csv", "rb"), delimiter=",", skiprows=1)
 fraw = np.loadtxt(open("tomout.csv", "rb"), delimiter=",", skiprows=1)
 sraw = np.loadtxt(open("slips.csv", "rb"), delimiter=",", skiprows=0)
@@ -124,6 +124,7 @@ sangtheohighvf = nscale * sangtheohighraw[:,3]
 #ax.plot(tdata,sdata)
 #fig0.savefig("plots/plot_vt.png")
 #
+
 ### standard plots
 
 #fig1, ax = plt.subplots()
@@ -310,12 +311,10 @@ ax1.legend(loc='upper right')
 
 for slip in slipst:
     ax1.axvline(x=slip, color = 'gray', linestyle = 'dotted')
-#for slipto in sliptost:
-#    ax1.axvline(x=slipto, color = 'gray', linestyle = 'dotted')
 
 f21, = ax2.plot(tdata,fdata, label = "Signal")
 f22, = ax2.plot(avgst,avgs, label = "Noise reduction")
-ax2.set(xlabel='t (nm)', ylabel='F (nN)')
+ax2.set(xlabel='t (ns)', ylabel='F (nN)')
 ax2.xaxis.set_major_locator(ticker.MultipleLocator(5.0))
 ax2.xaxis.set_minor_locator(ticker.MultipleLocator(1.0))
 #ax2.xaxis.grid(True, which='minor', linestyle='dotted')
@@ -460,3 +459,6 @@ fig11.savefig("plots/fq_slips")
 #ax.xaxis.grid(True, which='major',linestyle='dotted')
 #ax.yaxis.grid(True, linestyle='dotted')
 #fig18.savefig("plots/retrace_q.png")
+
+
+
