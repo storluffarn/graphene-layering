@@ -6,6 +6,21 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import matplotlib.colors as colors
 import time
+import matplotlib.pylab as pylab
+
+params = {'legend.fontsize': 'large',
+          'axes.labelsize': 'large',
+          'axes.titlesize':'large',
+          'xtick.labelsize':'large',
+          'ytick.labelsize':'large',
+          'figure.autolayout':True}
+#params = {'legend.fontsize': 'x-large',
+#          'axes.labelsize': 'x-large',
+#          'axes.titlesize':'x-large',
+#          'xtick.labelsize':'x-large',
+#          'ytick.labelsize':'x-large',
+#          'figure.autolayout':True}
+pylab.rcParams.update(params)
 
 kb = 1.38064852e-23
 
@@ -14,16 +29,16 @@ tstep = modif * 3e-14
 steps = 1.0/modif * 10.0e5	
 alltime = steps*tstep 
 
-traw = np.loadtxt(open("time.csv", "rb"), delimiter=",", skiprows=1)
-xraw = np.loadtxt(open("xout.csv", "rb"), delimiter=",", skiprows=1)
-qraw = np.loadtxt(open("qout.csv", "rb"), delimiter=",", skiprows=1)
-fraw = np.loadtxt(open("tomout.csv", "rb"), delimiter=",", skiprows=1)
-sraw = np.loadtxt(open("slips.csv", "rb"), delimiter=",", skiprows=0)
-storaw = np.loadtxt(open("sliptos.csv", "rb"), delimiter=",", skiprows=0)
-sfraw = np.loadtxt(open("slipsf.csv", "rb"), delimiter=",", skiprows=0)
-sqraw = np.loadtxt(open("slipsq.csv", "rb"), delimiter=",", skiprows=0)
+traw = np.loadtxt(open("./time.csv", "rb"), delimiter=",", skiprows=1)
+xraw = np.loadtxt(open("./xout.csv", "rb"), delimiter=",", skiprows=1)
+qraw = np.loadtxt(open("./qout.csv", "rb"), delimiter=",", skiprows=1)
+fraw = np.loadtxt(open("./tomout.csv", "rb"), delimiter=",", skiprows=1)
+sraw = np.loadtxt(open("./slips.csv", "rb"), delimiter=",", skiprows=0)
+storaw = np.loadtxt(open("./sliptos.csv", "rb"), delimiter=",", skiprows=0)
+sfraw = np.loadtxt(open("./slipsf.csv", "rb"), delimiter=",", skiprows=0)
+sqraw = np.loadtxt(open("./slipsq.csv", "rb"), delimiter=",", skiprows=0)
 #sraw = np.loadtxt(open("slipsdetailed.csv", "rb"), delimiter=",", skiprows=1)
-avgraw = np.loadtxt(open("avgs.csv", "rb"), delimiter=",", skiprows=1)
+avgraw = np.loadtxt(open("./avgs.csv", "rb"), delimiter=",", skiprows=1)
 #sangraw = np.loadtxt(open("sangslips.csv", "rb"), delimiter=",", skiprows=0)
 sangsimraw = np.loadtxt(open("sangcompsim.csv", "rb"), delimiter=",", skiprows=0)
 sangtheoraw = np.loadtxt(open("sangcomptheo.csv", "rb"), delimiter=",", skiprows=0)
@@ -127,33 +142,33 @@ sangtheohighvf = nscale * sangtheohighraw[:,3]
 
 ### standard plots
 
-#fig1, ax = plt.subplots()
-#ax.plot(tdata,xdata)
-#ax.set(xlabel='t (nm)', ylabel='x (nm)')
-#ax.xaxis.set_major_locator(ticker.MultipleLocator(1.0))
-#ax.xaxis.set_minor_locator(ticker.MultipleLocator(0.25))
-#ax.xaxis.grid(True, which='minor',linestyle='dotted')
-#ax.xaxis.grid(True, which='major',linestyle='dotted')
-#ax.yaxis.grid(True, linestyle='dotted')
-#fig1.savefig("plots/plot_x.png")
-#
-#fig2, ax = plt.subplots()
-#ax.plot(tdata,qdata)
-##ax.plot(supdata,qdata)
-#ax.set(xlabel='t (nm)', ylabel='q (nm)')
-#fig2.savefig("plots/plot_q.png")
-#
-#fig3, ax = plt.subplots()
-#ax.plot(tdata,fdata)
-##ax.plot(supdata,fdata)
-#ax.set(xlabel='t (nm)', ylabel='x (nm)')
-#ax.xaxis.set_major_locator(ticker.MultipleLocator(1.0))
-#ax.xaxis.set_minor_locator(ticker.MultipleLocator(0.25))
-#ax.xaxis.grid(True, which='minor',linestyle='dotted')
-#ax.xaxis.grid(True, which='major',linestyle='dotted')
-#ax.yaxis.grid(True, linestyle='dotted')
-#ax.set(xlabel='t (nm)', ylabel='F (nN)')
-#fig3.savefig("plots/plot_f.png")
+fig1, ax = plt.subplots()
+ax.plot(tdata,xdata)
+ax.set(xlabel='t (nm)', ylabel='x (nm)')
+ax.xaxis.set_major_locator(ticker.MultipleLocator(1.0))
+ax.xaxis.set_minor_locator(ticker.MultipleLocator(0.25))
+ax.xaxis.grid(True, which='minor',linestyle='dotted')
+ax.xaxis.grid(True, which='major',linestyle='dotted')
+ax.yaxis.grid(True, linestyle='dotted')
+fig1.savefig("plots/plot_x.png")
+
+fig2, ax = plt.subplots()
+ax.plot(tdata,qdata)
+#ax.plot(supdata,qdata)
+ax.set(xlabel='t (nm)', ylabel='q (nm)')
+fig2.savefig("plots/plot_q.png")
+
+fig3, ax = plt.subplots()
+ax.plot(tdata,fdata)
+#ax.plot(supdata,fdata)
+ax.set(xlabel='t (nm)', ylabel='x (nm)')
+ax.xaxis.set_major_locator(ticker.MultipleLocator(1.0))
+ax.xaxis.set_minor_locator(ticker.MultipleLocator(0.25))
+ax.xaxis.grid(True, which='minor',linestyle='dotted')
+ax.xaxis.grid(True, which='major',linestyle='dotted')
+ax.yaxis.grid(True, linestyle='dotted')
+ax.set(xlabel='t (nm)', ylabel='F (nN)')
+fig3.savefig("plots/plot_f.png")
 #
 ### for debugging
 #
@@ -336,29 +351,29 @@ fig11.savefig("plots/fq_slips")
 
 ## stable unstable 
 
-#fig12, (ax2,ax1) = plt.subplots(nrows = 2, sharex = True)
-#
-#ax1.plot(tdata,fdata, color='#ff7f0e', label = "")
-#ax1.set(ylabel='F (nN)')
-#ax1.xaxis.set_major_locator(ticker.MultipleLocator(1.0))
-#ax1.xaxis.set_minor_locator(ticker.MultipleLocator(0.25))
-#ax1.xaxis.grid(True, which='minor', linestyle='dotted')
-#ax1.xaxis.grid(True, which='major', linestyle='dotted')
-#ax1.yaxis.grid(True, which='major', linestyle='dotted')
+fig12, (ax1,ax2) = plt.subplots(nrows = 2, sharex = True)
+
+ax1.plot(tdata,fdata, color='#ff7f0e', label = "")
+    #ax1.set(ylabel='F (nN)')
+ax1.xaxis.set_major_locator(ticker.MultipleLocator(1.0))
+ax1.xaxis.set_minor_locator(ticker.MultipleLocator(0.25))
+ax1.xaxis.grid(True, which='minor', linestyle='dotted')
+ax1.xaxis.grid(True, which='major', linestyle='dotted')
+ax1.yaxis.grid(True, which='major', linestyle='dotted')
 #ax1.set(xlabel='t (nm)', ylabel='q (nN)')
-##ax1.legend(loc='lower right')
-#
-#f2, = ax2.plot(tdata,qdata, color='#ff7f0e', label = "")
-#ax2.xaxis.set_major_locator(ticker.MultipleLocator(1.0))
-#ax2.xaxis.set_minor_locator(ticker.MultipleLocator(0.25))
-#ax2.xaxis.grid(True, which='minor', linestyle='dotted')
-#ax2.xaxis.grid(True, which='major', linestyle='dotted')
-#ax2.yaxis.grid(True, which='major', linestyle='dotted')
-##ax2.legend(loc='lower right')
-#
-#plt.subplots_adjust(hspace=0)
-#
-#fig12.savefig("plots/fqthermal.png")
+#ax1.legend(loc='lower right')
+
+f2, = ax2.plot(tdata,qdata, color='#ff7f0e', label = "")
+ax2.xaxis.set_major_locator(ticker.MultipleLocator(1.0))
+ax2.xaxis.set_minor_locator(ticker.MultipleLocator(0.25))
+ax2.xaxis.grid(True, which='minor', linestyle='dotted')
+ax2.xaxis.grid(True, which='major', linestyle='dotted')
+ax2.yaxis.grid(True, which='major', linestyle='dotted')
+#ax2.legend(loc='lower right')
+
+plt.subplots_adjust(hspace=0)
+
+fig12.savefig("plots/fqthermal.png")
 ##
 #fig13, ax = plt.subplots()
 #ax.plot(sangsimtt,sangsimtf,'*',label='simulation')
@@ -394,38 +409,38 @@ fig11.savefig("plots/fq_slips")
 #
 ### Landscape plots (remastered from Mathematica)
 
-### density plots
+## density plots
 
-#fig15, ax = plt.subplots()
-#
-## constants
-#
-#xmax = 6.5e-9
-#qmax = 1e-9
-#bins = 1000
-#
-##xlist, qlist = np.mgrid[0:xmax:bins*1j, 0:qmax:bins*1j]
-#xlist, qlist = np.mgrid[-0.25e-9:xmax:bins*1j, -qmax:qmax:bins*1j] ## use this for retrace
-#
-#nuscale = 0.0;
-#
-#def pot(x,q) :
-#    return (barr1 + kappa1*q**2) * (1 - np.cos(2*np.pi/latcona*(x - q))) + (barr2 + kappa2*q**2) * (1 - np.cos(2*np.pi/latconb*x)) + nuscale * (nu2*q**2 + nu4*q**4)
-#
-## + n2*np.square(qlist) + n4*np.square(qlist) # not a proper part of the land scape
-#
-#zi = pot(xlist,qlist)
-#
-#toev = 6.242e+18
-#
-#im = ax.pcolormesh(nscale*xlist,nscale*qlist,toev*zi.reshape(xlist.shape),cmap='YlOrBr',rasterized=True)
-#ax.plot(xdata,qdata)
-#ax.set(xlabel='$x$ (nm)', ylabel='$q$ (nm)')
-#
-#cbar = fig15.colorbar(im)
-#cbar.set_label(label='$V_\\mathrm{tip-sheet} + V_\\mathrm{tip-substrate}$')
-#
-#fig15.savefig("plots/landscape.png")
+fig15, ax = plt.subplots()
+
+# constants
+
+xmax = 5.0e-9
+qmax = 1e-9
+bins = 1000
+
+#xlist, qlist = np.mgrid[0:xmax:bins*1j, 0:qmax:bins*1j]
+xlist, qlist = np.mgrid[-0.25e-9:xmax:bins*1j, -1.e-10:qmax:bins*1j] ## use this for retrace
+
+nuscale = 0.0;
+
+def pot(x,q) :
+    return (barr1 + kappa1*q**2) * (1 - np.cos(2*np.pi/latcona*(x - q))) + (barr2 + kappa2*q**2) * (1 - np.cos(2*np.pi/latconb*x)) + nuscale * (nu2*q**2 + nu4*q**4)
+
+# + n2*np.square(qlist) + n4*np.square(qlist) # not a proper part of the land scape
+
+zi = pot(xlist,qlist)
+
+toev = 6.242e+18
+
+im = ax.pcolormesh(nscale*xlist,nscale*qlist,toev*zi.reshape(xlist.shape),cmap='YlOrBr',rasterized=True)
+ax.plot(xdata,qdata)
+ax.set(xlabel='$x$ (nm)', ylabel='$q$ (nm)')
+
+cbar = fig15.colorbar(im)
+cbar.set_label(label='$V_\\mathrm{tip-sheet} + V_\\mathrm{tip-substrate}$')
+
+fig15.savefig("plots/landscape.png")
 #
 
 ### retrace plots

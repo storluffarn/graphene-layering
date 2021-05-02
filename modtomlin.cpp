@@ -9,7 +9,7 @@
 #include <fstream>
 #include <cmath>
 #include <vector>
-#include "modtomlin.h"
+#include "tomlinclass.cpp"
 
 // Lazy stuff
 
@@ -65,7 +65,7 @@ int main()
 	
 	double modif = 0.5;	// 0.5 gives reliable time step dep. 1.0 should be ok
 	double tstep = modif * 3e-14;	
-	uint tsteps = 1.0/modif * 5.0e5;	// has to be even beucasue lazyness
+	uint tsteps = 1.0/modif * 2.0e5;	// has to be even beucasue lazyness
 
 	uint ttoa = ceil(latcon/(tstep));	// timesteps to minima
 
@@ -76,7 +76,7 @@ int main()
 
 	tomlin afm(spring,supvel,latcon,align,barr1,barr2,kappa1,kappa2,
 			   nu2,nu4,temp,tstep,tsteps,xmass,qmass,xdamp,qdamp,
-			   tfile,xfile,qfile,tomfile,"","");
+			   tfile,xfile,qfile,tomfile,"","","");
 	
     
     //afm.setposx(1e-10);

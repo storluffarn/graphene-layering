@@ -8,6 +8,21 @@ import matplotlib.gridspec as gridspec
 import matplotlib.ticker as ticker
 from matplotlib import rcParams
 from matplotlib.font_manager import findfont, FontProperties
+import matplotlib.pylab as pylab
+
+#params = {'legend.fontsize': 'x-large',
+#          'axes.labelsize': 'x-large',
+#          'axes.titlesize':'x-large',
+#          'xtick.labelsize':'x-large',
+#          'ytick.labelsize':'x-large',
+#          'figure.autolayout':True}
+params = {'legend.fontsize': 'large',
+          'axes.labelsize': 'large',
+          'axes.titlesize':'large',
+          'xtick.labelsize':'large',
+          'ytick.labelsize':'large',
+          'figure.autolayout':True}
+pylab.rcParams.update(params)
 
 # import csv
 xraw = np.loadtxt(open("stdx.csv", "rb"), delimiter=",", skiprows=0)
@@ -134,6 +149,7 @@ ax1.set(ylabel='F (nN)')
 ax1.xaxis.set_major_locator(ticker.MultipleLocator(1.0))
 ax1.xaxis.set_minor_locator(ticker.MultipleLocator(0.25))
 ax1.xaxis.grid(True, which='minor', linestyle='dotted')
+ax1.xaxis.grid(True, which='major', linestyle='dotted')
 ax1.yaxis.grid(True, linestyle='dotted')
 
 #ax1.annotate('A', (0, 1), xytext=(4, -4), xycoords='axes fraction', textcoords='offset points', fontweight='bold', backgroundcolor='w', ha='left', va='top')
@@ -143,6 +159,7 @@ ax2.set(xlabel='vt (nm)', ylabel='q (nm)')
 ax2.xaxis.set_major_locator(ticker.MultipleLocator(1.0))
 ax2.xaxis.set_minor_locator(ticker.MultipleLocator(0.25))
 ax2.xaxis.grid(True, which='minor', linestyle='dotted')
+ax2.xaxis.grid(True, which='major', linestyle='dotted')
 ax2.yaxis.grid(True, linestyle='dotted')
 #ax2.legend((f1, f2), ('x(t)', 'q(t)'), loc='lower right')
 
@@ -198,14 +215,14 @@ zi = pot(xlist,qlist)
 
 toev = 6.242e+18
 
-im = ax.pcolormesh(xscale*xlist,qscale*qlist,toev*zi.reshape(xlist.shape),cmap='YlOrBr',rasterized=True)
-ax.plot(xdata,qdata)
+im = ax.pcolormesh(xscale*xlist,qscale*qlist,toev*zi.reshape(xlist.shape),cmap='YlOrBr_r',rasterized=True)
+ax.plot(xdata,qdata,'lime')
 ax.set(xlabel='$x$ (nm)', ylabel='$q$ (nm)')
 
 cbar = fig3.colorbar(im)
 cbar.set_label(label='$V_\\mathrm{tip-sheet} + V_\\mathrm{tip-substrate}$')
 
-fig3.savefig("test3.png")
+fig3.savefig("test3.png", transparent=True)
 print("figure 3 done!")
 
 ### tryin go get it all into one plot
@@ -274,21 +291,21 @@ anfrdata = anfrdata / anscale
 f1, = ax.plot(nunudata,nufrdata,'g^')
 f2, = ax.plot(annudata,anfrdata,color='#ff7f0e')
 
-#f3, = ax.plot(x4,carp1,'bo') # graphene
-#ax.plot(x3,carp2,'bo')
-#ax.plot(x2,carp3,'bo')
-#f4, = ax.plot(x22,carp4,'bs') # MoS2
-#ax.plot(x4,carp5,'bs')
-#ax.plot(x22,carp6,'bs')
-#f5, = ax.plot(x4,carp7,'bD') # NbSe2
-#
-#f6, = ax.plot(x4,dong,'mP')
-#f7, = ax.plot(x4,li,'mX',linewidth=1)
+f3, = ax.plot(x4,carp1,'bo') # graphene
+ax.plot(x3,carp2,'bo')
+ax.plot(x2,carp3,'bo')
+f4, = ax.plot(x22,carp4,'bs') # MoS2
+ax.plot(x4,carp5,'bs')
+ax.plot(x22,carp6,'bs')
+f5, = ax.plot(x4,carp7,'bD') # NbSe2
+
+f6, = ax.plot(x4,dong,'mP')
+f7, = ax.plot(x4,li,'mX',linewidth=1)
 
 ax.set_xlim(0.0,4.5)
 ax.set_ylim(0.0,1.75)
 ax.set(xlabel='$\\nu_4 / \\nu_4^0$', ylabel='F/F($\\nu_4^0$)' )
-ax.legend((f1, f2), ('model sim.', 'analytic'))
+ax.legend((f1, f2, f3, f4, f5, f6, f7), ('model sim.', 'analytic', 'graphene [23]', 'MoS2 [23]', 'NbSe2 [23]', 'graphene [27]', 'graphene [25]'))
 
 ax.xaxis.set_major_locator(ticker.MultipleLocator(1.0))
 ax.xaxis.set_minor_locator(ticker.MultipleLocator(0.5))

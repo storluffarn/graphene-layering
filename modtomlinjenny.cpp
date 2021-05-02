@@ -16,7 +16,7 @@
 
 #include <fstream>
 #include <vector>
-#include "slicingalgs.h"		// I fucked up my dependancies, modtomlin.h is needed but is included in slicingalgs.h... trying to save thins with common_stuff.h, still bad
+#include "slicingalgs.cpp"		// I fucked up my dependancies, modtomlin.h is needed but is included in slicingalgs.h... trying to save thins with common_stuff.h, still bad
 #include <chrono>
 #include <string>
 
